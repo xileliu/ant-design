@@ -13,8 +13,7 @@ title:
 
 You can customize the style of the button, just note the size limit: no more than `40px * 40px`.
 
-
-````jsx
+```jsx
 import { BackTop } from 'antd';
 
 ReactDOM.render(
@@ -23,14 +22,14 @@ ReactDOM.render(
       <div className="ant-back-top-inner">UP</div>
     </BackTop>
     Scroll down to see the bottom-right
-    <strong style={{ color: '#57c5f7' }}> blue </strong>
+    <strong style={{ color: '#1088e9' }}> blue </strong>
     button.
   </div>,
-  mountNode
+  mountNode,
 );
-````
+```
 
-````css
+```css
 #components-back-top-demo-custom .ant-back-top {
   bottom: 100px;
 }
@@ -39,9 +38,9 @@ ReactDOM.render(
   width: 40px;
   line-height: 40px;
   border-radius: 4px;
-  background-color: #57c5f7;
+  background-color: #1088e9;
   color: #fff;
   text-align: center;
   font-size: 20px;
 }
-````
+```

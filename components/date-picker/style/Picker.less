@@ -1,6 +1,11 @@
+@import '../../button/style/mixin';
+
 .@{calendar-prefix-cls}-picker-container {
+  .reset-component;
+
   position: absolute;
   z-index: @zindex-picker;
+  font-family: @font-family;
 
   &.slide-up-enter.slide-up-enter-active&-placement-topLeft,
   &.slide-up-enter.slide-up-enter-active&-placement-topRight,
@@ -28,36 +33,58 @@
 }
 
 .@{calendar-prefix-cls}-picker {
+  .reset-component;
+
   position: relative;
   display: inline-block;
   outline: none;
-  font-size: @font-size-base;
+  cursor: text;
   transition: opacity 0.3s;
 
   &-input {
     outline: none;
+
+    &.@{ant-prefix}-input {
+      line-height: @line-height-base;
+    }
   }
 
-  &:hover &-input {
-    border-color: @primary-color;
+  &-input.@{ant-prefix}-input-sm {
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
-  &-clear {
-    opacity: 0;
-    pointer-events: none;
-    z-index: 1;
+  &:hover &-input:not(.@{ant-prefix}-input-disabled) {
+    border-color: @input-hover-border-color;
+  }
+
+  &:focus &-input:not(.@{ant-prefix}-input-disabled) {
+    .active();
+  }
+
+  &-clear,
+  &-icon {
     position: absolute;
-    right: 7px;
-    background: #fff;
     top: 50%;
-    font-size: @font-size-base;
-    color: #ccc;
+    right: @control-padding-horizontal;
+    z-index: 1;
     width: 14px;
     height: 14px;
     margin-top: -7px;
+    font-size: @font-size-sm;
     line-height: 14px;
+    transition: all 0.3s;
+    user-select: none;
+  }
+
+  &-clear {
+    z-index: 2;
+    color: @disabled-color;
+    font-size: @font-size-base;
+    background: @input-bg;
     cursor: pointer;
-    transition: color 0.3s, opacity 0.3s;
+    opacity: 0;
+    pointer-events: none;
     &:hover {
       color: @text-color-secondary;
     }
@@ -69,24 +96,14 @@
   }
 
   &-icon {
-    position: absolute;
-    user-select: none;
-    transition: all .3s;
-    width: 12px;
-    height: 12px;
-    line-height: 12px;
-    right: 8px;
-    color: @text-color-secondary;
-    top: 50%;
-    margin-top: -6px;
-    &:after {
-      content: "\e6bb";
-      font-family: "anticon";
-      font-size: @font-size-base;
-      color: @text-color-secondary;
-      display: inline-block;
-      line-height: 1;
-      vertical-align: bottom;
-    }
+    display: inline-block;
+    color: @disabled-color;
+    font-size: @font-size-base;
+    line-height: 1;
+  }
+
+  &-small &-clear,
+  &-small &-icon {
+    right: @control-padding-horizontal-sm;
   }
 }

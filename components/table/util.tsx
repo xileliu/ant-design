@@ -1,17 +1,19 @@
-import React from 'react';
-import assign from 'object-assign';
-import Column from './Column';
-import ColumnGroup from './ColumnGroup';
+import * as React from 'react';
+import { ColumnFilterItem } from './interface';
 
-export function flatArray(data: Object[] = [], childrenName = 'children') {
-  const result: Object[] = [];
-  const loop = (array) => {
+export function flatArray(data: any[] = [], childrenName = 'children') {
+  const result: any[] = [];
+  const loop = (array: any[]) => {
     array.forEach(item => {
-      const newItem = assign({}, item);
-      delete newItem[childrenName];
-      result.push(newItem);
-      if (item[childrenName] && item[childrenName].length > 0) {
-        loop(item[childrenName]);
+      if (item[childrenName]) {
+        const newItem = { ...item };
+        delete newItem[childrenName];
+        result.push(newItem);
+        if (item[childrenName].length > 0) {
+          loop(item[childrenName]);
+        }
+      } else {
+        result.push(item);
       }
     });
   };
@@ -19,27 +21,49 @@ export function flatArray(data: Object[] = [], childrenName = 'children') {
   return result;
 }
 
-export function treeMap(tree: Object[], mapper: Function, childrenName = 'children') {
-  return tree.map((node, index) => {
-    const extra = {};
+export function treeMap<Node>(
+  tree: Node[],
+  mapper: (node: Node, index: number) => any,
+  childrenName = 'children',
+) {
+  return tree.map((node: any, index) => {
+    const extra: any = {};
     if (node[childrenName]) {
       extra[childrenName] = treeMap(node[childrenName], mapper, childrenName);
     }
-    return assign({}, mapper(node, index), extra);
+    return {
+      ...mapper(node as Node, index),
+      ...extra,
+    };
   });
 }
 
-export function normalizeColumns(elements) {
+export function flatFilter(tree: any[], callback: Function) {
+  return tree.reduce((acc, node) => {
+    if (callback(node)) {
+      acc.push(node);
+    }
+    if (node.children) {
+      const children = flatFilter(node.children, callback);
+      acc.push(...children);
+    }
+    return acc;
+  }, []);
+}
+
+export function normalizeColumns(elements: React.ReactChildren) {
   const columns: any[] = [];
-  React.Children.forEach(elements, (element: React.ReactElement<any>) => {
-    if (!isColumnElement(element)) {
+  React.Children.forEach(elements, element => {
+    if (!React.isValidElement(element)) {
       return;
     }
-    const column = assign({}, element.props);
+    const column: any = {
+      ...element.props,
+    };
     if (element.key) {
       column.key = element.key;
     }
-    if (element.type as any === ColumnGroup) {
+    if (element.type && (element.type as any).__ANT_TABLE_COLUMN_GROUP) {
       column.children = normalizeColumns(column.children);
     }
     columns.push(column);
@@ -47,6 +71,10 @@ export function normalizeColumns(elements) {
   return columns;
 }
 
-function isColumnElement(element) {
-  return element && (element.type === Column || element.type === ColumnGroup);
+export function generateValueMaps(items?: ColumnFilterItem[], maps: { [name: string]: any } = {}) {
+  (items || []).forEach(({ value, children }) => {
+    maps[value.toString()] = value;
+    generateValueMaps(children, maps);
+  });
+  return maps;
 }

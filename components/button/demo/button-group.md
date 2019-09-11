@@ -1,5 +1,5 @@
 ---
-order: 5
+order: 6
 title:
   zh-CN: 按钮组合
   en-US: Button Group
@@ -17,8 +17,9 @@ Buttons can be grouped by placing multiple `Button` components into a `Button.Gr
 
 The `size` can be set to `large`, `small` or left unset resulting in a default size.
 
-````jsx
+```jsx
 import { Button, Icon } from 'antd';
+
 const ButtonGroup = Button.Group;
 
 ReactDOM.render(
@@ -26,7 +27,7 @@ ReactDOM.render(
     <h4>Basic</h4>
     <ButtonGroup>
       <Button>Cancel</Button>
-      <Button type="primary">OK</Button>
+      <Button>OK</Button>
     </ButtonGroup>
     <ButtonGroup>
       <Button disabled>L</Button>
@@ -34,29 +35,34 @@ ReactDOM.render(
       <Button disabled>R</Button>
     </ButtonGroup>
     <ButtonGroup>
-      <Button type="primary">L</Button>
+      <Button>L</Button>
       <Button>M</Button>
-      <Button type="ghost">M</Button>
-      <Button type="dashed">R</Button>
+      <Button>R</Button>
     </ButtonGroup>
 
     <h4>With Icon</h4>
     <ButtonGroup>
       <Button type="primary">
-        <Icon type="left" />Go back
+        <Icon type="left" />
+        Go back
       </Button>
       <Button type="primary">
-        Go forward<Icon type="right" />
+        Go forward
+        <Icon type="right" />
       </Button>
     </ButtonGroup>
     <ButtonGroup>
       <Button type="primary" icon="cloud" />
       <Button type="primary" icon="cloud-download" />
     </ButtonGroup>
+    <ButtonGroup>
+      <Button type="primary" size="small" icon="cloud" />
+      <Button type="primary" size="small" icon="cloud-download" />
+    </ButtonGroup>
   </div>,
-  mountNode
+  mountNode,
 );
-````
+```
 
 <style>
 #components-button-demo-button-group h4 {

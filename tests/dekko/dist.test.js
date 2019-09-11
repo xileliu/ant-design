@@ -1,12 +1,15 @@
-
-
 const $ = require('dekko');
+const chalk = require('chalk');
 
 $('dist')
   .isDirectory()
+  .hasFile('antd-with-locales.js')
+  .hasFile('antd-with-locales.min.js')
   .hasFile('antd.css')
   .hasFile('antd.min.css')
   .hasFile('antd.js')
-  .hasFile('antd.min.js');
+  .hasFile('antd.min.js')
+  .hasFile('antd.less');
 
-console.log('`dist` directory is valid.');
+// eslint-disable-next-line
+console.log(chalk.green('✨ `dist` directory is valid.'));

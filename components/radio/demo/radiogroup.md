@@ -1,9 +1,9 @@
 ---
 order: 1
 title:
-  zh-CN: RadioGroup 组合
-  en-US: RadioGroup group
------------------------
+  zh-CN: 单选组合
+  en-US: Radio Group
+---
 
 ## zh-CN
 
@@ -11,35 +11,34 @@ title:
 
 ## en-US
 
-A set of mutually exclusive Radio with the use of
+A group of radio components.
 
 ```jsx
 import { Radio } from 'antd';
-const RadioGroup = Radio.Group;
 
-const App = React.createClass({
-  getInitialState() {
-    return {
-      value: 1,
-    };
-  },
-  onChange(e) {
+class App extends React.Component {
+  state = {
+    value: 1,
+  };
+
+  onChange = e => {
     console.log('radio checked', e.target.value);
     this.setState({
       value: e.target.value,
     });
-  },
+  };
+
   render() {
     return (
-      <RadioGroup onChange={this.onChange} value={this.state.value}>
+      <Radio.Group onChange={this.onChange} value={this.state.value}>
         <Radio value={1}>A</Radio>
         <Radio value={2}>B</Radio>
         <Radio value={3}>C</Radio>
         <Radio value={4}>D</Radio>
-      </RadioGroup>
+      </Radio.Group>
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<App />, mountNode);
 ```

@@ -1,101 +1,171 @@
-import React from 'react';
+import * as React from 'react';
 import RcMention, { Nav, toString, toEditorState, getMentions } from 'rc-editor-mention';
+import { polyfill } from 'react-lifecycles-compat';
 import classNames from 'classnames';
 import Icon from '../icon';
+import warning from '../_util/warning';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
+
+export type MentionPlacement = 'top' | 'bottom';
+
+type SuggestionItme = React.ReactElement<{ value?: string }> | string;
 
 export interface MentionProps {
-  prefixCls: string;
-  suggestionStyle?: Object;
-  suggestions?: Array<any>;
-  onSearchChange?: Function;
-  onChange?: Function;
+  prefixCls?: string;
+  suggestionStyle?: React.CSSProperties;
+  defaultSuggestions?: Array<SuggestionItme>;
+  suggestions?: Array<React.ReactElement<any>>;
+  onSearchChange?: (value: string, trigger: string) => any;
+  onChange?: (contentState: any) => void;
   notFoundContent?: any;
-  loading?: Boolean;
-  style?: Object;
+  loading?: boolean;
+  style?: React.CSSProperties;
   defaultValue?: any;
   value?: any;
   className?: string;
-  multiLines?: Boolean;
-  prefix?: string;
+  multiLines?: boolean;
+  prefix?: string | string[];
   placeholder?: string;
-  getSuggestionContainer?: Function;
+  getSuggestionContainer?: (triggerNode: Element) => HTMLElement;
+  onFocus?: React.FocusEventHandler<HTMLElement>;
+  onBlur?: React.FocusEventHandler<HTMLElement>;
+  onSelect?: (suggestion: string, data?: any) => void;
+  readOnly?: boolean;
+  disabled?: boolean;
+  placement?: MentionPlacement;
 }
 
 export interface MentionState {
-  suggestions?: Array<any>;
+  filteredSuggestions?: Array<any>;
   focus?: Boolean;
 }
 
-export default class Mention extends React.Component<MentionProps, MentionState> {
-  static Nav = Nav;
-  static toString = toString;
-  static toEditorState = toEditorState;
+class Mention extends React.Component<MentionProps, MentionState> {
   static getMentions = getMentions;
+
   static defaultProps = {
-    prefixCls: 'ant-mention',
-    notFoundContent: '无匹配结果，轻敲空格完成输入',
+    notFoundContent: 'No matches found',
     loading: false,
     multiLines: false,
+    placement: 'bottom' as MentionPlacement,
   };
-  constructor(props) {
+
+  static Nav = Nav;
+
+  static toString = toString;
+
+  static toContentState = toEditorState;
+
+  private mentionEle: any;
+
+  constructor(props: MentionProps) {
     super(props);
     this.state = {
-      suggestions: props.suggestions,
+      filteredSuggestions: props.defaultSuggestions,
       focus: false,
     };
+
+    warning(
+      false,
+      'Mention',
+      'Mention component is deprecated. Please use Mentions component instead.',
+    );
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      suggestions: nextProps.suggestions,
-    });
-  }
+  mentionRef = (ele: any) => {
+    this.mentionEle = ele;
+  };
 
-  onSearchChange = (value) => {
+  onSearchChange = (value: string, prefix: string) => {
     if (this.props.onSearchChange) {
-      return this.props.onSearchChange(value);
+      return this.props.onSearchChange(value, prefix);
     }
     return this.defaultSearchChange(value);
-  }
+  };
 
-  onChange = (editorState) => {
+  onChange = (editorState: any) => {
     if (this.props.onChange) {
       this.props.onChange(editorState);
     }
-  }
+  };
 
-  defaultSearchChange(value: String): void {
-    const searchValue = value.toLowerCase();
-    const filteredSuggestions = (this.props.suggestions || []).filter(
-      suggestion => suggestion.toLowerCase().indexOf(searchValue) !== -1
-    );
+  onFocus = (ev: React.FocusEvent<HTMLElement>) => {
     this.setState({
-      suggestions: filteredSuggestions,
+      focus: true,
+    });
+    if (this.props.onFocus) {
+      this.props.onFocus(ev);
+    }
+  };
+
+  onBlur = (ev: React.FocusEvent<HTMLElement>) => {
+    this.setState({
+      focus: false,
+    });
+    if (this.props.onBlur) {
+      this.props.onBlur(ev);
+    }
+  };
+
+  focus = () => {
+    this.mentionEle._editor.focusEditor();
+  };
+
+  defaultSearchChange(value: string): void {
+    const searchValue = value.toLowerCase();
+    const filteredSuggestions = (this.props.defaultSuggestions || []).filter(suggestion => {
+      if (typeof suggestion === 'string') {
+        return suggestion.toLowerCase().indexOf(searchValue) !== -1;
+      }
+      if (suggestion.type && suggestion.type === Nav) {
+        return suggestion.props.value
+          ? suggestion.props.value.toLowerCase().indexOf(searchValue) !== -1
+          : true;
+      }
+      return false;
+    });
+    this.setState({
+      filteredSuggestions,
     });
   }
 
-  render() {
-    const { className = '', prefixCls, loading } = this.props;
-    const { suggestions, focus } = this.state;
+  renderMention = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const {
+      prefixCls: customizePrefixCls,
+      className = '',
+      loading,
+      placement,
+      suggestions,
+    } = this.props;
+    const { filteredSuggestions, focus } = this.state;
+    const prefixCls = getPrefixCls('mention', customizePrefixCls);
     const cls = classNames(className, {
       [`${prefixCls}-active`]: focus,
+      [`${prefixCls}-placement-top`]: placement === 'top',
     });
-
-    const notFoundContent = loading
-      ? <Icon type="loading" />
-      : this.props.notFoundContent;
+    const notFoundContent = loading ? <Icon type="loading" /> : this.props.notFoundContent;
 
     return (
       <RcMention
         {...this.props}
+        prefixCls={prefixCls}
         className={cls}
+        ref={this.mentionRef}
         onSearchChange={this.onSearchChange}
         onChange={this.onChange}
-        onFocus={() => this.setState({ focus: true })}
-        onBlur={() => this.setState({ focus: false })}
-        suggestions={suggestions}
+        onFocus={this.onFocus}
+        onBlur={this.onBlur}
+        suggestions={suggestions || filteredSuggestions}
         notFoundContent={notFoundContent}
       />
     );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderMention}</ConfigConsumer>;
   }
 }
+
+polyfill(Mention);
+
+export default Mention;

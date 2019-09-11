@@ -11,15 +11,19 @@ title:
 
 ## en-US
 
-Normal messages as feedbacks.
+Normal message for information.
 
-````jsx
+```jsx
 import { message, Button } from 'antd';
 
-const info = function () {
+const info = () => {
   message.info('This is a normal message');
 };
 
-ReactDOM.render(<Button type="primary" onClick={info}>Display normal message</Button>
-, mountNode);
-````
+ReactDOM.render(
+  <Button type="primary" onClick={info}>
+    Display normal message
+  </Button>,
+  mountNode,
+);
+```

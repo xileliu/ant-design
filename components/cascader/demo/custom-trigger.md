@@ -1,5 +1,5 @@
 ---
-order: 1
+order: 2
 title:
   zh-CN: 可以自定义显示
   en-US: Custom trigger
@@ -13,36 +13,43 @@ title:
 
 Separate trigger button and result.
 
-````jsx
+```jsx
 import { Cascader } from 'antd';
 
-const options = [{
-  value: 'zhejiang',
-  label: 'Zhejiang',
-  children: [{
-    value: 'hangzhou',
-    label: 'Hangzhou',
-  }],
-}, {
-  value: 'jiangsu',
-  label: 'Jiangsu',
-  children: [{
-    value: 'nanjing',
-    label: 'Nanjing',
-  }],
-}];
-
-const CitySwitcher = React.createClass({
-  getInitialState() {
-    return {
-      text: 'Unselect',
-    };
+const options = [
+  {
+    value: 'zhejiang',
+    label: 'Zhejiang',
+    children: [
+      {
+        value: 'hangzhou',
+        label: 'Hangzhou',
+      },
+    ],
   },
-  onChange(value, selectedOptions) {
+  {
+    value: 'jiangsu',
+    label: 'Jiangsu',
+    children: [
+      {
+        value: 'nanjing',
+        label: 'Nanjing',
+      },
+    ],
+  },
+];
+
+class CitySwitcher extends React.Component {
+  state = {
+    text: 'Unselect',
+  };
+
+  onChange = (value, selectedOptions) => {
     this.setState({
       text: selectedOptions.map(o => o.label).join(', '),
     });
-  },
+  };
+
   render() {
     return (
       <span>
@@ -53,8 +60,8 @@ const CitySwitcher = React.createClass({
         </Cascader>
       </span>
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<CitySwitcher />, mountNode);
-````
+```

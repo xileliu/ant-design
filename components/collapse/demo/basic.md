@@ -1,6 +1,6 @@
 ---
 order: 0
-title: 
+title:
   zh-CN: 折叠面板
   en-US: Collapse
 ---
@@ -11,11 +11,12 @@ title:
 
 ## en-US
 
-More than one panel can be expanded at a time, the first panel is initialized to be active in this case.
+By default, any number of panels can be expanded at a time. The first panel is expanded in this example.
 
-````jsx
+```jsx
 import { Collapse } from 'antd';
-const Panel = Collapse.Panel;
+
+const { Panel } = Collapse;
 
 function callback(key) {
   console.log(key);
@@ -35,9 +36,16 @@ ReactDOM.render(
     <Panel header="This is panel header 2" key="2">
       <p>{text}</p>
     </Panel>
-    <Panel header="This is panel header 3" key="3">
+    <Panel header="This is panel header 3" key="3" disabled>
       <p>{text}</p>
     </Panel>
-  </Collapse>
-, mountNode);
-````
+  </Collapse>,
+  mountNode,
+);
+```
+
+<style>
+p {
+  margin: 0;
+}
+</style>

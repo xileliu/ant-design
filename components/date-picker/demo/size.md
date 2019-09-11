@@ -13,19 +13,19 @@ title:
 
 The input box comes in three sizes. `default` will be used if `size` is omitted.
 
-
-````jsx
+```jsx
 import { DatePicker, Radio } from 'antd';
-const { MonthPicker, RangePicker } = DatePicker;
+
+const { MonthPicker, RangePicker, WeekPicker } = DatePicker;
 
 class PickerSizesDemo extends React.Component {
   state = {
     size: 'default',
   };
 
-  handleSizeChange = (e) => {
+  handleSizeChange = e => {
     this.setState({ size: e.target.value });
-  }
+  };
 
   render() {
     const { size } = this.state;
@@ -36,16 +36,19 @@ class PickerSizesDemo extends React.Component {
           <Radio.Button value="default">Default</Radio.Button>
           <Radio.Button value="small">Small</Radio.Button>
         </Radio.Group>
-        <br /><br />
+        <br />
+        <br />
         <DatePicker size={size} />
         <br />
-        <MonthPicker size={size} />
+        <MonthPicker size={size} placeholder="Select Month" />
         <br />
         <RangePicker size={size} />
+        <br />
+        <WeekPicker size={size} placeholder="Select Week" />
       </div>
     );
   }
 }
 
 ReactDOM.render(<PickerSizesDemo />, mountNode);
-````
+```

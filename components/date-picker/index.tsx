@@ -1,73 +1,22 @@
-import React from 'react';
-import moment from 'moment';
-import assign from 'object-assign';
+import * as React from 'react';
 import RcCalendar from 'rc-calendar';
 import MonthCalendar from 'rc-calendar/lib/MonthCalendar';
 import createPicker from './createPicker';
 import wrapPicker from './wrapPicker';
 import RangePicker from './RangePicker';
-import Calendar from './Calendar';
-import { TimePickerProps } from '../time-picker';
+import WeekPicker from './WeekPicker';
+import { DatePickerProps, DatePickerDecorator } from './interface';
 
-export interface PickerProps {
-  prefixCls?: string;
-  inputPrefixCls?: string;
-  format?: string;
-  disabled?: boolean;
-  allowClear?: boolean;
-  style?: React.CSSProperties;
-  popupStyle?: React.CSSProperties;
-  locale?: any;
-  size?: 'large' | 'small' | 'default';
-  getCalendarContainer?: (trigger: any) => React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (status: boolean) => void;
-}
+const DatePicker = wrapPicker(createPicker(RcCalendar), 'date') as React.ClassicComponentClass<
+  DatePickerProps
+>;
 
-export interface SinglePickerProps {
-  value?: moment.Moment;
-  defaultValue?: moment.Moment;
-  defaultPickerValue?: moment.Moment;
-  onChange?: (date: moment.Moment, dateString: string) => void;
-}
+const MonthPicker = wrapPicker(createPicker(MonthCalendar), 'month');
 
-export interface DatePickerProps extends PickerProps, SinglePickerProps {
-  showTime?: TimePickerProps | boolean;
-  showToday?: boolean;
-  open?: boolean;
-  toggleOpen?: (e: {open: boolean}) => void;
-  disabledDate?: (current: moment.Moment) => boolean;
-  onOpenChange?: (status: boolean) => void;
-  placeholder?: string;
-}
-const DatePicker = wrapPicker(createPicker(RcCalendar)) as React.ClassicComponentClass<DatePickerProps>;
-
-export interface MonthPickerProps extends PickerProps, SinglePickerProps {
-  disabledDate?: (current: moment.Moment) => boolean;
-  placeholder?: string;
-}
-const MonthPicker = wrapPicker(createPicker(MonthCalendar), 'YYYY-MM');
-
-export interface RangePickerProps extends PickerProps {
-  value?: [moment.Moment, moment.Moment];
-  defaultValue?: [moment.Moment, moment.Moment];
-  defaultPickerValue?: [moment.Moment, moment.Moment];
-  onChange?: (dates: [moment.Moment, moment.Moment], dateStrings: [string, string]) => void;
-  showTime?: TimePickerProps | boolean;
-  ranges?: {
-    [range: string]: moment.Moment[],
-  };
-}
-
-assign(DatePicker, {
-  RangePicker: wrapPicker(RangePicker),
-  Calendar,
+Object.assign(DatePicker, {
+  RangePicker: wrapPicker(RangePicker, 'date'),
   MonthPicker,
+  WeekPicker: wrapPicker(WeekPicker, 'week'),
 });
-
-export interface DatePickerDecorator extends React.ClassicComponentClass<DatePickerProps> {
-  RangePicker: React.ClassicComponentClass<RangePickerProps>;
-  MonthPicker: React.ClassicComponentClass<MonthPickerProps>;
-}
 
 export default DatePicker as DatePickerDecorator;

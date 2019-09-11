@@ -1,21 +1,12 @@
-import React from 'react';
+import * as React from 'react';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
-import { Store } from './createStore';
+import { SelectionBoxProps, SelectionBoxState } from './interface';
 
-export interface SelectionBoxProps {
-  store: Store;
-  type: string;
-  defaultSelection: string[];
-  rowIndex: string;
-  disabled?: boolean;
-  onChange: (e) => void;
-}
-
-export default class SelectionBox extends React.Component<SelectionBoxProps, any> {
+export default class SelectionBox extends React.Component<SelectionBoxProps, SelectionBoxState> {
   unsubscribe: () => void;
 
-  constructor(props) {
+  constructor(props: SelectionBoxProps) {
     super(props);
 
     this.state = {
@@ -33,6 +24,20 @@ export default class SelectionBox extends React.Component<SelectionBoxProps, any
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getCheckState(props: SelectionBoxProps) {
+    const { store, defaultSelection, rowIndex } = props;
+    let checked = false;
+    if (store.getState().selectionDirty) {
+      checked = store.getState().selectedRowKeys.indexOf(rowIndex) >= 0;
+    } else {
+      checked =
+        store.getState().selectedRowKeys.indexOf(rowIndex) >= 0 ||
+        defaultSelection.indexOf(rowIndex) >= 0;
+    }
+    return checked;
+  }
+
   subscribe() {
     const { store } = this.props;
     this.unsubscribe = store.subscribe(() => {
@@ -41,39 +46,13 @@ export default class SelectionBox extends React.Component<SelectionBoxProps, any
     });
   }
 
-  getCheckState(props) {
-    const { store, defaultSelection, rowIndex } = props;
-    let checked = false;
-    if (store.getState().selectionDirty) {
-      checked = store.getState().selectedRowKeys.indexOf(rowIndex) >= 0;
-    } else {
-      checked = (store.getState().selectedRowKeys.indexOf(rowIndex) >= 0 ||
-                 defaultSelection.indexOf(rowIndex) >= 0);
-    }
-    return checked;
-  }
-
   render() {
-    const { type, rowIndex, disabled, onChange } = this.props;
+    const { type, rowIndex, ...rest } = this.props;
     const { checked } = this.state;
 
     if (type === 'radio') {
-      return (
-        <Radio
-          disabled={disabled}
-          onChange={onChange}
-          value={rowIndex}
-          checked={checked}
-        />
-      );
+      return <Radio checked={checked} value={rowIndex} {...rest} />;
     }
-
-    return (
-      <Checkbox
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-      />
-    );
+    return <Checkbox checked={checked} {...rest} />;
   }
 }

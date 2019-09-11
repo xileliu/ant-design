@@ -1,119 +1,157 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Animate from 'rc-animate';
+import * as React from 'react';
 import classNames from 'classnames';
 import omit from 'omit.js';
-import assign from 'object-assign';
+import { polyfill } from 'react-lifecycles-compat';
 import Icon from '../icon';
-import warning from '../_util/warning';
-import splitObject from '../_util/splitObject';
 import CheckableTag from './CheckableTag';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
+import { PresetColorTypes } from '../_util/colors';
+import warning from '../_util/warning';
+import Wave from '../_util/wave';
 
-export interface TagProps {
+export { CheckableTagProps } from './CheckableTag';
+
+export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
+  prefixCls?: string;
+  className?: string;
   color?: string;
-  /** 标签是否可以关闭 */
   closable?: boolean;
-  /** 关闭时的回调 */
+  visible?: boolean;
   onClose?: Function;
-  /** 动画关闭后的回调 */
   afterClose?: Function;
   style?: React.CSSProperties;
 }
 
-export default class Tag extends React.Component<TagProps, any> {
+interface TagState {
+  visible: boolean;
+}
+
+const PresetColorRegex = new RegExp(`^(${PresetColorTypes.join('|')})(-inverse)?$`);
+
+class Tag extends React.Component<TagProps, TagState> {
   static CheckableTag = CheckableTag;
+
   static defaultProps = {
-    prefixCls: 'ant-tag',
     closable: false,
+  };
+
+  static getDerivedStateFromProps(nextProps: TagProps) {
+    if ('visible' in nextProps) {
+      return {
+        visible: nextProps.visible,
+      };
+    }
+    return null;
+  }
+
+  state = {
+    visible: true,
   };
 
   constructor(props: TagProps) {
     super(props);
     warning(
-      !/blue|red|green|yellow/.test(props.color || ''),
-      '`Tag[color=red|green|blue|yellow]` is deprecated, ' +
-        'please set color by `#abc` or `rgb(a, b, c)` instead.'
+      !('afterClose' in props),
+      'Tag',
+      "'afterClose' will be deprecated, please use 'onClose', we will remove this in the next version.",
     );
+  }
 
-    this.state = {
-      closing: false,
-      closed: false,
+  getTagStyle() {
+    const { color, style } = this.props;
+    const isPresetColor = this.isPresetColor();
+    return {
+      backgroundColor: color && !isPresetColor ? color : undefined,
+      ...style,
     };
   }
 
-  close = (e) => {
-    const onClose = this.props.onClose;
+  getTagClassName({ getPrefixCls }: ConfigConsumerProps) {
+    const { prefixCls: customizePrefixCls, className, color } = this.props;
+    const { visible } = this.state;
+    const isPresetColor = this.isPresetColor();
+    const prefixCls = getPrefixCls('tag', customizePrefixCls);
+    return classNames(
+      prefixCls,
+      {
+        [`${prefixCls}-${color}`]: isPresetColor,
+        [`${prefixCls}-has-color`]: color && !isPresetColor,
+        [`${prefixCls}-hidden`]: !visible,
+      },
+      className,
+    );
+  }
+
+  setVisible(visible: boolean, e: React.MouseEvent<HTMLElement>) {
+    const { onClose, afterClose } = this.props;
     if (onClose) {
       onClose(e);
+    }
+    if (afterClose && !onClose) {
+      // next version remove.
+      afterClose();
     }
     if (e.defaultPrevented) {
       return;
     }
-    const dom = ReactDOM.findDOMNode(this) as HTMLElement;
-    dom.style.width = `${dom.getBoundingClientRect().width}px`;
-    // It's Magic Code, don't know why
-    dom.style.width = `${dom.getBoundingClientRect().width}px`;
-    this.setState({
-      closing: true,
-    });
-  }
-
-  animationEnd = (_, existed) => {
-    if (!existed && !this.state.closed) {
-      this.setState({
-        closed: true,
-        closing: false,
-      });
-
-      const afterClose = this.props.afterClose;
-      if (afterClose) {
-        afterClose();
-      }
+    if (!('visible' in this.props)) {
+      this.setState({ visible });
     }
   }
 
-  render() {
-    const [{
-      prefixCls, closable, color, className, children, style,
-    }, otherProps] = splitObject(
-      this.props,
-      ['prefixCls', 'closable', 'color', 'className', 'children', 'style']
-    );
-    const closeIcon = closable ? <Icon type="cross" onClick={this.close} /> : '';
-    const classString = classNames(prefixCls, {
-      [`${prefixCls}-${color}`]: !!color,
-      [`${prefixCls}-has-color`]: !!color,
-      [`${prefixCls}-close`]: this.state.closing,
-    }, className);
-    // fix https://fb.me/react-unknown-prop
-    const divProps = omit(otherProps, [
+  handleIconClick = (e: React.MouseEvent<HTMLElement>) => {
+    this.setVisible(false, e);
+  };
+
+  isPresetColor(): boolean {
+    const { color } = this.props;
+    if (!color) {
+      return false;
+    }
+    return PresetColorRegex.test(color);
+  }
+
+  renderCloseIcon() {
+    const { closable } = this.props;
+    return closable ? <Icon type="close" onClick={this.handleIconClick} /> : null;
+  }
+
+  renderTag = (configProps: ConfigConsumerProps) => {
+    const { children, ...otherProps } = this.props;
+    const isNeedWave =
+      'onClick' in otherProps || (children && (children as React.ReactElement<any>).type === 'a');
+    const tagProps = omit(otherProps, [
       'onClose',
       'afterClose',
+      'color',
+      'visible',
+      'closable',
+      'prefixCls',
     ]);
-    const tagStyle = assign({
-      backgroundColor: /blue|red|green|yellow/.test(color) ? null : color,
-    }, style);
-    const tag = this.state.closed ? null : (
-      <div
-        data-show={!this.state.closing}
-        {...divProps}
-        className={classString}
-        style={tagStyle}
-      >
-        <span className={`${prefixCls}-text`}>{children}</span>
-        {closeIcon}
-      </div>
+    return isNeedWave ? (
+      <Wave>
+        <span
+          {...tagProps}
+          className={this.getTagClassName(configProps)}
+          style={this.getTagStyle()}
+        >
+          {children}
+          {this.renderCloseIcon()}
+        </span>
+      </Wave>
+    ) : (
+      <span {...tagProps} className={this.getTagClassName(configProps)} style={this.getTagStyle()}>
+        {children}
+        {this.renderCloseIcon()}
+      </span>
     );
-    return (
-      <Animate
-        component=""
-        showProp="data-show"
-        transitionName={`${prefixCls}-zoom`}
-        transitionAppear
-        onEnd={this.animationEnd}
-      >
-        {tag}
-      </Animate>
-    );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderTag}</ConfigConsumer>;
   }
 }
+
+polyfill(Tag);
+
+export default Tag;

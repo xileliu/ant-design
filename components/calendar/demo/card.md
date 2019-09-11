@@ -1,6 +1,6 @@
 ---
-order: 10
-title: 
+order: 2
+title:
   zh-CN: 卡片模式
   en-US: Card
 ---
@@ -13,7 +13,7 @@ title:
 
 Nested inside a container element for rendering in limited space.
 
-````jsx
+```jsx
 import { Calendar } from 'antd';
 
 function onPanelChange(value, mode) {
@@ -21,8 +21,9 @@ function onPanelChange(value, mode) {
 }
 
 ReactDOM.render(
-  <div style={{ width: 290, border: '1px solid #d9d9d9', borderRadius: 4 }}>
+  <div style={{ width: 300, border: '1px solid #d9d9d9', borderRadius: 4 }}>
     <Calendar fullscreen={false} onPanelChange={onPanelChange} />
-  </div>
-, mountNode);
-````
+  </div>,
+  mountNode,
+);
+```

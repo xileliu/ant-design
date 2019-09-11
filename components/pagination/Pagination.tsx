@@ -1,87 +1,125 @@
-import React from 'react';
+import * as React from 'react';
 import RcPagination from 'rc-pagination';
-import Select from '../select';
+import enUS from 'rc-pagination/lib/locale/en_US';
+import classNames from 'classnames';
 import MiniSelect from './MiniSelect';
-import zhCN from './locale/zh_CN';
+import Icon from '../icon';
+import Select from '../select';
+import LocaleReceiver from '../locale-provider/LocaleReceiver';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 
 export interface PaginationProps {
-  /** 当前页数*/
-  current?: number;
-  /** 默认的当前页数*/
+  total?: number;
   defaultCurrent?: number;
-  /** 数据总数*/
-  total: number;
-  /** 初始的每页条数*/
+  disabled?: boolean;
+  current?: number;
   defaultPageSize?: number;
-  /** 每页条数*/
   pageSize?: number;
-  /** 页码改变的回调，参数是改变后的页码*/
-  onChange?: (page: number) => void;
-  /** 是否可以改变 pageSize */
+  onChange?: (page: number, pageSize?: number) => void;
+  hideOnSinglePage?: boolean;
   showSizeChanger?: boolean;
-  /** 指定每页可以显示多少条*/
-  pageSizeOptions?: Array<string>;
-  /** pageSize 变化的回调  */
+  pageSizeOptions?: string[];
   onShowSizeChange?: (current: number, size: number) => void;
-  /** 是否可以快速跳转至某页*/
-  showQuickJumper?: boolean;
-  /** 当为「small」时，是小尺寸分页 */
+  showQuickJumper?: boolean | { goButton?: React.ReactNode };
+  showTotal?: (total: number, range: [number, number]) => React.ReactNode;
   size?: string;
-  /** 当添加该属性时，显示为简单分页*/
-  simple?: Object;
-  /** 用于显示总共有多少条数据*/
-  showTotal?: (total: number) => React.ReactNode;
+  simple?: boolean;
   style?: React.CSSProperties;
-  className?: string;
   locale?: Object;
+  className?: string;
   prefixCls?: string;
   selectPrefixCls?: string;
+  itemRender?: (
+    page: number,
+    type: 'page' | 'prev' | 'next' | 'jump-prev' | 'jump-next',
+    originalElement: React.ReactElement<HTMLElement>,
+  ) => React.ReactNode;
+  role?: string;
+  showLessItems?: boolean;
 }
 
-export interface PaginationContext {
-  antLocale?: {
-    Pagination?: any,
-  };
+export interface PaginationConfig extends PaginationProps {
+  position?: 'top' | 'bottom' | 'both';
 }
 
-export default class Pagination extends React.Component<PaginationProps, any> {
-  static defaultProps = {
-    locale: zhCN,
-    className: '',
-    prefixCls: 'ant-pagination',
-    selectPrefixCls: 'ant-select',
+export type PaginationLocale = any;
+
+export default class Pagination extends React.Component<PaginationProps, {}> {
+  getIconsProps = (prefixCls: string) => {
+    const prevIcon = (
+      <a className={`${prefixCls}-item-link`}>
+        <Icon type="left" />
+      </a>
+    );
+    const nextIcon = (
+      <a className={`${prefixCls}-item-link`}>
+        <Icon type="right" />
+      </a>
+    );
+    const jumpPrevIcon = (
+      <a className={`${prefixCls}-item-link`}>
+        {/* You can use transition effects in the container :) */}
+        <div className={`${prefixCls}-item-container`}>
+          <Icon className={`${prefixCls}-item-link-icon`} type="double-left" />
+          <span className={`${prefixCls}-item-ellipsis`}>•••</span>
+        </div>
+      </a>
+    );
+    const jumpNextIcon = (
+      <a className={`${prefixCls}-item-link`}>
+        {/* You can use transition effects in the container :) */}
+        <div className={`${prefixCls}-item-container`}>
+          <Icon className={`${prefixCls}-item-link-icon`} type="double-right" />
+          <span className={`${prefixCls}-item-ellipsis`}>•••</span>
+        </div>
+      </a>
+    );
+    return {
+      prevIcon,
+      nextIcon,
+      jumpPrevIcon,
+      jumpNextIcon,
+    };
   };
 
-  static contextTypes = {
-    antLocale: React.PropTypes.object,
-  };
+  renderPagination = (contextLocale: PaginationLocale) => {
+    const {
+      prefixCls: customizePrefixCls,
+      selectPrefixCls: customizeSelectPrefixCls,
+      className,
+      size,
+      locale: customLocale,
+      ...restProps
+    } = this.props;
+    const locale = { ...contextLocale, ...customLocale };
+    const isSmall = size === 'small';
+    return (
+      <ConfigConsumer>
+        {({ getPrefixCls }: ConfigConsumerProps) => {
+          const prefixCls = getPrefixCls('pagination', customizePrefixCls);
+          const selectPrefixCls = getPrefixCls('select', customizeSelectPrefixCls);
 
-  context: PaginationContext;
+          return (
+            <RcPagination
+              {...restProps}
+              prefixCls={prefixCls}
+              selectPrefixCls={selectPrefixCls}
+              {...this.getIconsProps(prefixCls)}
+              className={classNames(className, { mini: isSmall })}
+              selectComponentClass={isSmall ? MiniSelect : Select}
+              locale={locale}
+            />
+          );
+        }}
+      </ConfigConsumer>
+    );
+  };
 
   render() {
-    let className = this.props.className;
-    let selectComponentClass = Select as React.ReactNode;
-
-    let locale;
-    if (this.context.antLocale && this.context.antLocale.Pagination) {
-      locale = this.context.antLocale.Pagination;
-    } else {
-      locale = this.props.locale;
-    }
-
-    if (this.props.size === 'small') {
-      className += ' mini';
-      selectComponentClass = MiniSelect;
-    }
-
     return (
-      <RcPagination
-        selectComponentClass={selectComponentClass}
-        selectPrefixCls={this.props.selectPrefixCls}
-        {...this.props}
-        locale={locale}
-        className={className}
-      />
+      <LocaleReceiver componentName="Pagination" defaultLocale={enUS}>
+        {this.renderPagination}
+      </LocaleReceiver>
     );
   }
 }

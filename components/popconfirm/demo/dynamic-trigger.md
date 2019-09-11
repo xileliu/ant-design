@@ -13,28 +13,30 @@ title:
 
 Make it pop up under some conditions.
 
-````jsx
+```jsx
 import { Popconfirm, Switch, message } from 'antd';
 
-const App = React.createClass({
-  getInitialState() {
-    return {
-      visible: false,
-      condition: true,   // Whether meet the condition, if not show popconfirm.
-    };
-  },
-  changeCondition(value) {
+class App extends React.Component {
+  state = {
+    visible: false,
+    condition: true, // Whether meet the condition, if not show popconfirm.
+  };
+
+  changeCondition = value => {
     this.setState({ condition: value });
-  },
-  confirm() {
+  };
+
+  confirm = () => {
     this.setState({ visible: false });
     message.success('Next step.');
-  },
-  cancel() {
+  };
+
+  cancel = () => {
     this.setState({ visible: false });
     message.error('Click on cancel.');
-  },
-  handleVisibleChange(visible) {
+  };
+
+  handleVisibleChange = visible => {
     if (!visible) {
       this.setState({ visible });
       return;
@@ -42,17 +44,21 @@ const App = React.createClass({
     // Determining condition before show the popconfirm.
     console.log(this.state.condition);
     if (this.state.condition) {
-      this.confirm();  // next step
+      this.confirm(); // next step
     } else {
-      this.setState({ visible });  // show the popconfirm
+      this.setState({ visible }); // show the popconfirm
     }
-  },
+  };
+
   render() {
     return (
       <div>
-        <Popconfirm title="Are you sure delete this task?"
-          visible={this.state.visible} onVisibleChange={this.handleVisibleChange}
-          onConfirm={this.confirm} onCancel={this.cancel}
+        <Popconfirm
+          title="Are you sure delete this task?"
+          visible={this.state.visible}
+          onVisibleChange={this.handleVisibleChange}
+          onConfirm={this.confirm}
+          onCancel={this.cancel}
           okText="Yes"
           cancelText="No"
         >
@@ -60,11 +66,12 @@ const App = React.createClass({
         </Popconfirm>
         <br />
         <br />
-        Whether directly execute：<Switch defaultChecked onChange={this.changeCondition} />
+        Whether directly execute：
+        <Switch defaultChecked onChange={this.changeCondition} />
       </div>
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<App />, mountNode);
-````
+```

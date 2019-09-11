@@ -1,8 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import classNames from 'classnames';
-import splitObject from '../_util/splitObject';
-
-export type ButtonSize = 'small' | 'large'
+import { ButtonSize } from './button';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 
 export interface ButtonGroupProps {
   size?: ButtonSize;
@@ -11,20 +10,37 @@ export interface ButtonGroupProps {
   prefixCls?: string;
 }
 
-export default function ButtonGroup(props: ButtonGroupProps) {
-  const [{ prefixCls = 'ant-btn-group', size, className }, others] =
-    splitObject(props, ['prefixCls', 'size', 'className']);
+const ButtonGroup: React.SFC<ButtonGroupProps> = props => (
+  <ConfigConsumer>
+    {({ getPrefixCls }: ConfigConsumerProps) => {
+      const { prefixCls: customizePrefixCls, size, className, ...others } = props;
+      const prefixCls = getPrefixCls('btn-group', customizePrefixCls);
 
-  // large => lg
-  // small => sm
-  const sizeCls = ({
-    large: 'lg',
-    small: 'sm',
-  })[size] || '';
+      // large => lg
+      // small => sm
+      let sizeCls = '';
+      switch (size) {
+        case 'large':
+          sizeCls = 'lg';
+          break;
+        case 'small':
+          sizeCls = 'sm';
+          break;
+        default:
+          break;
+      }
 
-  const classes = classNames(prefixCls, {
-    [`${prefixCls}-${sizeCls}`]: sizeCls,
-  }, className);
+      const classes = classNames(
+        prefixCls,
+        {
+          [`${prefixCls}-${sizeCls}`]: sizeCls,
+        },
+        className,
+      );
 
-  return <div {...others} className={classes} />;
-}
+      return <div {...others} className={classes} />;
+    }}
+  </ConfigConsumer>
+);
+
+export default ButtonGroup;

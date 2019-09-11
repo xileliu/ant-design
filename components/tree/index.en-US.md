@@ -4,55 +4,92 @@ type: Data Display
 title: Tree
 ---
 
+A hierarchical list structure component.
+
 ## When To Use
 
-Directory, organization, biological classification, country, and etc. Almost things of the world are tree structure. The `Tree` component is a way of representing the hierarchical relationship of these things，and you also can expand, collapse, select the treeNodes of it.
+Almost anything can be represented in a tree structure. Examples include directories, organization hierarchies, biological classifications, countries, etc. The `Tree` component is a way of representing the hierarchical relationship between these things. You can also expand, collapse, and select a treeNode within a `Tree`.
 
 ## API
 
 ### Tree props
 
-| Property       | Description                                      | Type       | Default |
-|----------------|--------------------------------------------------|------------|---------|
-|multiple | Whether allow to select multiple treeNodes | bool | false |
-|checkable | Whether support add Checkbox before treeNode | bool | false |
-|defaultExpandAll | Whether default to expand all treeNodes | bool | false |
-|defaultExpandedKeys | Specify keys of default expanded treeNodes | String[] | [] |
-|expandedKeys |(controlled) Specifies keys of expanded treeNodes | String[] | [] |
-|autoExpandParent | Whether to automatically expand a parent treeNode | bool | true |
-|defaultCheckedKeys | Specifies keys of default checked treeNodes | String[] | [] |
-|checkedKeys |(controlled) Specifies keys of checked treeNodes（PS： When specifies a key of treeNode which is a parent treeNode, all children treeNodes of its will be checked; And vice versa, when specifies a key of treeNode which is a child treeNode, its parent treeNode will also be checked. When `checkable` and `checkStrictly` is true, it'a object has `checked` and `halfChecked` property, and no matter child treeNode or parent treeNode is checked, they won't impact on eachother. | String[]/{checked:Array<String>,halfChecked:Array<String>} | [] |
-|checkStrictly| Check treeNode precisely, parent treeNode and children treeNodes are not associated | bool | false |
-|defaultSelectedKeys | Specifies keys of default selected treeNodes | String[] | [] |
-|selectedKeys |(controlled) Specifies keys of selected treeNode | String[] | - |
-|onExpand | Defines a function will be called when expand or collapse a treeNode | function(expandedKeys, {expanded: bool, node}) | - |
-|onCheck | Defines a function will be called when the onCheck event occurs | function(checkedKeys, e:{checked: bool, checkedNodes, node, event}) | - |
-|onSelect | The callback will be invoked when the user clicks a treeNode | function(selectedKeys, e:{selected: bool, selectedNodes, node, event}) | - |
-|filterTreeNode | Defines a function to filter treeNodes（highlight），when return true, corresponding treeNode will be highlight | function(node) | - |
-|loadData | load data asynchronously | function(node)| - |
-|onRightClick | The call back will be invoked when the user right clicks a treeNode | function({event,node}) | - |
-|draggable | Specifies whether this Tree is draggable（IE>8） | bool | false |
-|onDragStart | Defines a function will be called when the onDragStart event occurs | function({event,node}) | - |
-|onDragEnter | Defines a function will be called when the onDragEnter event occurs | function({event,node,expandedKeys}) | - |
-|onDragOver  | Defines a function will be called when the onDragOver event occurs | function({event,node}) | - |
-|onDragLeave | Defines a function will be called when the onDragLeave event occurs | function({event,node}) | - |
-|onDragEnd | Defines a function will be called when the onDragEnd event occurs | function({event,node}) | - |
-|onDrop | Defines a function will be called when the onDrop event occurs | function({event, node, dragNode, dragNodesKeys}) | - |
+| Property | Description | Type | Default | Version |
+| --- | --- | --- | --- | --- |
+| autoExpandParent | Whether to automatically expand a parent treeNode | boolean | true |  |
+| blockNode | Whether treeNode fill remaining horizontal space | boolean | false | 3.15.0 |
+| checkable | Adds a `Checkbox` before the treeNodes | boolean | false |  |
+| checkedKeys | (Controlled) Specifies the keys of the checked treeNodes (PS: When this specifies the key of a treeNode which is also a parent treeNode, all the children treeNodes of will be checked; and vice versa, when it specifies the key of a treeNode which is a child treeNode, its parent treeNode will also be checked. When `checkable` and `checkStrictly` is true, its object has `checked` and `halfChecked` property. Regardless of whether the child or parent treeNode is checked, they won't impact each other. | string\[] \| {checked: string\[], halfChecked: string\[]} | \[] |  |
+| checkStrictly | Check treeNode precisely; parent treeNode and children treeNodes are not associated | boolean | false |  |
+| defaultCheckedKeys | Specifies the keys of the default checked treeNodes | string\[] | \[] |  |
+| defaultExpandAll | Whether to expand all treeNodes by default | boolean | false |  |
+| defaultExpandedKeys | Specify the keys of the default expanded treeNodes | string\[] | \[] |  |
+| defaultExpandParent | auto expand parent treeNodes when init | bool | true | 3.4.0 |
+| defaultSelectedKeys | Specifies the keys of the default selected treeNodes | string\[] | \[] |  |
+| disabled | whether disabled the tree | bool | false | 3.4.0 |
+| draggable | Specifies whether this Tree is draggable (IE > 8) | boolean | false |  |
+| expandedKeys | (Controlled) Specifies the keys of the expanded treeNodes | string\[] | \[] |  |
+| filterTreeNode | Defines a function to filter (highlight) treeNodes. When the function returns `true`, the corresponding treeNode will be highlighted | function(node) | - |  |
+| loadData | Load data asynchronously | function(node) | - |  |
+| loadedKeys | (Controlled) Set loaded tree nodes. Need work with `loadData` | string\[] | \[] | 3.7.0 |
+| multiple | Allows selecting multiple treeNodes | boolean | false |  |
+| selectable | whether can be selected | boolean | true |  |
+| selectedKeys | (Controlled) Specifies the keys of the selected treeNodes | string\[] | - |  |
+| showIcon | Shows the icon before a TreeNode's title. There is no default style; you must set a custom style for it if set to `true` | boolean | false |  |
+| switcherIcon | customize collapse/expand icon of tree node | React.ReactElement | - | 3.12.0 |
+| showLine | Shows a connecting line | boolean | false |  |
+| onCheck | Callback function for when the onCheck event occurs | function(checkedKeys, e:{checked: bool, checkedNodes, node, event}) | - |  |
+| onDragEnd | Callback function for when the onDragEnd event occurs | function({event, node}) | - |  |
+| onDragEnter | Callback function for when the onDragEnter event occurs | function({event, node, expandedKeys}) | - |  |
+| onDragLeave | Callback function for when the onDragLeave event occurs | function({event, node}) | - |  |
+| onDragOver | Callback function for when the onDragOver event occurs | function({event, node}) | - |  |
+| onDragStart | Callback function for when the onDragStart event occurs | function({event, node}) | - |  |
+| onDrop | Callback function for when the onDrop event occurs | function({event, node, dragNode, dragNodesKeys}) | - |  |
+| onExpand | Callback function for when a treeNode is expanded or collapsed | function(expandedKeys, {expanded: bool, node}) | - |  |
+| onLoad | Callback function for when a treeNode is loaded | function(loadedKeys, {event, node}) | - | 3.7.0 |
+| onRightClick | Callback function for when the user right clicks a treeNode | function({event, node}) | - |  |
+| onSelect | Callback function for when the user clicks a treeNode | function(selectedKeys, e:{selected: bool, selectedNodes, node, event}) | - |  |
+| treeData | treeNodes data Array, if set it then you need not to construct children TreeNode. (key should be unique across the whole array) | array\<{ key, title, children, \[disabled, selectable] }> | - | 3.19.8 |
 
 ### TreeNode props
 
-| Property  | Description                              | Type    | Default |
-|-----------|------------------------------------------|---------|---------|
-|disabled | whether disabled the treeNode | bool | false |
-|disableCheckbox | whether disable the checkbox of treeNode | bool | false |
-|title | title | String/element | '---' |
-|key | it's used with (default)ExpandedKeys / (default)CheckedKeys / (default)SelectedKeys. P.S.: it must be unique in all of treeNodes of the tree! | String | internal calculated position of treeNode |
-|isLeaf | whether it's leaf node | bool | false |
+| Property | Description | Type | Default | Version |
+| --- | --- | --- | --- | --- |
+| checkable | When Tree is checkable, set TreeNode display Checkbox or not | boolean | - | 3.17.0 |
+| disableCheckbox | Disables the checkbox of the treeNode | boolean | false |  |  |
+| disabled | Disables the treeNode | boolean | false |  |  |
+| icon | customize icon. When you pass component, whose render will receive full TreeNode props as component props | ReactNode/Function(props):ReactNode | - |  | 3.4.0 |
+| isLeaf | Determines if this is a leaf node(effective when `loadData` is specified) | boolean | false |  |  |
+| key | Used with (default)ExpandedKeys / (default)CheckedKeys / (default)SelectedKeys. P.S.: It must be unique in all of treeNodes of the tree! | string | internal calculated position of treeNode |  |  |
+| selectable | Set whether the treeNode can be selected | boolean | true |  |  |
+| title | Title | string\|ReactNode | '---' |  |  |
 
-## note
+### DirectoryTree props
 
-The number of treeNodes can be very large, but when enable `checkable`,
-it will spend more computing time, so we cached some calculations(e.g. `this.treeNodesStates`),
-to avoid double computing. But, this bring some restrictions,
-**when you async load treeNodes, you should render tree like this**
-`{this.state.treeData.length ? <Tree ...>{this.state.treeData.map(t => <TreeNode ... />)}</Tree> : 'loading tree'}`
+| Property | Description | Type | Default | Version |
+| --- | --- | --- | --- | --- |
+| expandAction | Directory open logic, optional `false` `'click'` `'doubleClick'` | string | click | 3.7.0 |
+
+## Note
+
+Before `3.4.0`: The number of treeNodes can be very large, but when `checkable=true`, it will increase the compute time. So, we cache some calculations (e.g. `this.treeNodesStates`) to avoid double computing. But, this brings some restrictions. **When you load treeNodes asynchronously, you should render tree like this**:
+
+```jsx
+{
+  this.state.treeData.length ? (
+    <Tree>
+      {this.state.treeData.map(data => (
+        <TreeNode />
+      ))}
+    </Tree>
+  ) : (
+    'loading tree'
+  );
+}
+```
+
+## FAQ
+
+### How to hide file icon when use showLine?
+
+File icon realize by using switcherIcon. You can overwrite the style to hide it: https://codesandbox.io/s/883vo47xp8

@@ -1,11 +1,18 @@
-import React from 'react';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
+import shallowEqual from 'shallowequal';
+import { polyfill } from 'react-lifecycles-compat';
 import Radio from './radio';
-import RadioButton from './radioButton';
-import PureRenderMixin from 'rc-util/lib/PureRenderMixin';
-import assign from 'object-assign';
+import {
+  RadioGroupProps,
+  RadioGroupState,
+  RadioChangeEvent,
+  RadioGroupButtonStyle,
+} from './interface';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 
-function getCheckedValue(children) {
+function getCheckedValue(children: React.ReactNode) {
   let value = null;
   let matched = false;
   React.Children.forEach(children, (radio: any) => {
@@ -17,28 +24,32 @@ function getCheckedValue(children) {
   return matched ? { value } : undefined;
 }
 
-export interface RadioGroupProps {
-  prefixCls?: string;
-  className?: string;
-  /** 选项变化时的回调函数*/
-  onChange?: React.FormEventHandler<any>;
-  /** 用于设置当前选中的值*/
-  value?: string | number;
-  /** 默认选中的值*/
-  defaultValue?: string | number;
-  /**  大小，只对按钮样式生效*/
-  size?: 'large' | 'default' | 'small';
-  style?: React.CSSProperties;
-  disabled?: boolean;
-  onMouseEnter?: React.FormEventHandler<any>;
-  onMouseLeave?: React.FormEventHandler<any>;
-}
-
-export default class RadioGroup extends React.Component<RadioGroupProps, any> {
+class RadioGroup extends React.Component<RadioGroupProps, RadioGroupState> {
   static defaultProps = {
-    disabled: false,
+    buttonStyle: 'outline' as RadioGroupButtonStyle,
   };
-  constructor(props) {
+
+  static childContextTypes = {
+    radioGroup: PropTypes.any,
+  };
+
+  static getDerivedStateFromProps(nextProps: RadioGroupProps) {
+    if ('value' in nextProps) {
+      return {
+        value: nextProps.value,
+      };
+    }
+    const checkedValue = getCheckedValue(nextProps.children);
+    if (checkedValue) {
+      return {
+        value: checkedValue.value,
+      };
+    }
+
+    return null;
+  }
+
+  constructor(props: RadioGroupProps) {
     super(props);
     let value;
     if ('value' in props) {
@@ -53,61 +64,102 @@ export default class RadioGroup extends React.Component<RadioGroupProps, any> {
       value,
     };
   }
-  componentWillReceiveProps(nextProps) {
-    if ('value' in nextProps) {
-      this.setState({
-        value: nextProps.value,
-      });
-    } else {
-      const checkedValue = getCheckedValue(nextProps.children);
-      if (checkedValue) {
-        this.setState({
-          value: checkedValue.value,
-        });
-      }
-    }
+
+  getChildContext() {
+    return {
+      radioGroup: {
+        onChange: this.onRadioChange,
+        value: this.state.value,
+        disabled: this.props.disabled,
+        name: this.props.name,
+      },
+    };
   }
-  shouldComponentUpdate(...args) {
-    return PureRenderMixin.shouldComponentUpdate.apply(this, args);
+
+  shouldComponentUpdate(nextProps: RadioGroupProps, nextState: RadioGroupState) {
+    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState);
   }
-  onRadioChange = (ev) => {
+
+  onRadioChange = (ev: RadioChangeEvent) => {
+    const lastValue = this.state.value;
+    const { value } = ev.target;
     if (!('value' in this.props)) {
       this.setState({
-        value: ev.target.value,
+        value,
       });
     }
 
-    const onChange = this.props.onChange;
-    if (onChange) {
+    const { onChange } = this.props;
+    if (onChange && value !== lastValue) {
       onChange(ev);
     }
-  }
-  render() {
-    const props = this.props;
-    const children = !props.children ? [] : React.Children.map(props.children, (radio: any) => {
-      if (radio && (radio.type === Radio || radio.type === RadioButton) && radio.props) {
-        return React.cloneElement(radio, assign({}, radio.props, {
-          onChange: this.onRadioChange,
-          checked: this.state.value === radio.props.value,
-          disabled: radio.props.disabled || this.props.disabled,
-        }));
-      }
-      return radio;
-    });
+  };
 
-    const { prefixCls = 'ant-radio-group', className = '' } = props;
-    const classString = classNames(prefixCls, {
-      [`${prefixCls}-${props.size}`]: props.size,
-    }, className);
+  renderGroup = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { props } = this;
+    const { prefixCls: customizePrefixCls, className = '', options, buttonStyle } = props;
+    const prefixCls = getPrefixCls('radio', customizePrefixCls);
+    const groupPrefixCls = `${prefixCls}-group`;
+    const classString = classNames(
+      groupPrefixCls,
+      `${groupPrefixCls}-${buttonStyle}`,
+      {
+        [`${groupPrefixCls}-${props.size}`]: props.size,
+      },
+      className,
+    );
+
+    let { children } = props;
+
+    // 如果存在 options, 优先使用
+    if (options && options.length > 0) {
+      children = options.map(option => {
+        if (typeof option === 'string') {
+          // 此处类型自动推导为 string
+          return (
+            <Radio
+              key={option}
+              prefixCls={prefixCls}
+              disabled={this.props.disabled}
+              value={option}
+              checked={this.state.value === option}
+            >
+              {option}
+            </Radio>
+          );
+        }
+        // 此处类型自动推导为 { label: string value: string }
+        return (
+          <Radio
+            key={`radio-group-value-options-${option.value}`}
+            prefixCls={prefixCls}
+            disabled={option.disabled || this.props.disabled}
+            value={option.value}
+            checked={this.state.value === option.value}
+          >
+            {option.label}
+          </Radio>
+        );
+      });
+    }
+
     return (
       <div
         className={classString}
         style={props.style}
         onMouseEnter={props.onMouseEnter}
         onMouseLeave={props.onMouseLeave}
+        id={props.id}
       >
         {children}
       </div>
     );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderGroup}</ConfigConsumer>;
   }
 }
+
+polyfill(RadioGroup);
+export default RadioGroup;

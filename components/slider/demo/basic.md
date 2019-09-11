@@ -13,16 +13,18 @@ title:
 
 Basic slider. When `range` is `true`, display as dual thumb mode. When `disable` is `true`, the slider will not be interactable.
 
-````jsx
+```jsx
 import { Slider, Switch } from 'antd';
 
 class Demo extends React.Component {
   state = {
     disabled: false,
   };
-  handleDisabledChange = (disabled) => {
+
+  handleDisabledChange = disabled => {
     this.setState({ disabled });
-  }
+  };
+
   render() {
     const { disabled } = this.state;
     return (
@@ -36,7 +38,7 @@ class Demo extends React.Component {
 }
 
 ReactDOM.render(<Demo />, mountNode);
-````
+```
 
 <style>
 .code-box-demo .ant-slider {

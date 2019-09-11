@@ -14,20 +14,20 @@ title:
 
 2000 items.
 
-````jsx
+```jsx
 import { Transfer } from 'antd';
 
-const App = React.createClass({
-  getInitialState() {
-    return {
-      mockData: [],
-      targetKeys: [],
-    };
-  },
+class App extends React.Component {
+  state = {
+    mockData: [],
+    targetKeys: [],
+  };
+
   componentDidMount() {
     this.getMock();
-  },
-  getMock() {
+  }
+
+  getMock = () => {
     const targetKeys = [];
     const mockData = [];
     for (let i = 0; i < 2000; i++) {
@@ -43,11 +43,13 @@ const App = React.createClass({
       mockData.push(data);
     }
     this.setState({ mockData, targetKeys });
-  },
-  handleChange(targetKeys, direction, moveKeys) {
+  };
+
+  handleChange = (targetKeys, direction, moveKeys) => {
     console.log(targetKeys, direction, moveKeys);
     this.setState({ targetKeys });
-  },
+  };
+
   render() {
     return (
       <Transfer
@@ -57,8 +59,8 @@ const App = React.createClass({
         render={item => item.title}
       />
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<App />, mountNode);
-````
+```

@@ -13,20 +13,21 @@ title:
 
 The most basic usage.
 
-````jsx
+```jsx
 import { TreeSelect } from 'antd';
-const TreeNode = TreeSelect.TreeNode;
 
-const Demo = React.createClass({
-  getInitialState() {
-    return {
-      value: undefined,
-    };
-  },
-  onChange(value) {
-    console.log(arguments);
+const { TreeNode } = TreeSelect;
+
+class Demo extends React.Component {
+  state = {
+    value: undefined,
+  };
+
+  onChange = value => {
+    console.log(value);
     this.setState({ value });
-  },
+  };
+
   render() {
     return (
       <TreeSelect
@@ -50,8 +51,8 @@ const Demo = React.createClass({
         </TreeNode>
       </TreeSelect>
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<Demo />, mountNode);
-````
+```

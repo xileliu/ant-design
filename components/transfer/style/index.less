@@ -1,44 +1,53 @@
-@import "../../style/themes/default";
-@import "../../style/mixins/index";
-@import "../../checkbox/style/mixin";
+@import '../../style/themes/index';
+@import '../../style/mixins/index';
+@import '../../checkbox/style/mixin';
+@import './customize.less';
 
-@transfer-prefix-cls: ~"@{ant-prefix}-transfer";
-.antCheckboxFn(@checkbox-prefix-cls: ~"@{ant-prefix}-transfer-checkbox");
+@transfer-prefix-cls: ~'@{ant-prefix}-transfer';
+
+@transfer-header-vertical-padding: (
+    @transfer-header-height - 1px - @font-size-base * @line-height-base
+  ) / 2;
 
 .@{transfer-prefix-cls} {
+  .reset-component;
+
   position: relative;
-  line-height: @line-height-base;
+
+  &-disabled {
+    .@{transfer-prefix-cls}-list {
+      background: @transfer-disabled-bg;
+    }
+  }
 
   &-list {
-    font-size: @font-size-base;
-    border: 1px solid @border-color-base;
-    display: inline-block;
-    border-radius: @border-radius-base;
-    vertical-align: middle;
     position: relative;
+    display: inline-block;
     width: 180px;
-    height: 200px;
-    padding-top: 33px;
+    height: @transfer-list-height;
+    padding-top: @transfer-header-height;
+    vertical-align: middle;
+    border: @border-width-base @border-style-base @border-color-base;
+    border-radius: @border-radius-base;
 
     &-with-footer {
-      padding-bottom: 33px;
+      padding-bottom: 34px;
     }
 
     &-search {
+      padding: 0 @control-padding-horizontal-sm;
       &-action {
-        color: #ccc;
         position: absolute;
-        top: 4px;
-        right: 4px;
-        bottom: 4px;
+        top: 12px;
+        right: 12px;
+        bottom: 12px;
         width: 28px;
-        line-height: 26px;
+        color: @disabled-color;
+        line-height: @input-height-base;
         text-align: center;
-        font-size: @font-size-lg;
         .@{iconfont-css-prefix} {
-          transition: all .3s;
-          font-size: @font-size-base;
-          color: #ccc;
+          color: @disabled-color;
+          transition: all 0.3s;
           &:hover {
             color: @text-color-secondary;
           }
@@ -50,98 +59,112 @@
     }
 
     &-header {
-      padding: 7px 15px;
-      border-radius: @border-radius-base @border-radius-base 0 0;
-      background: @component-background;
-      color: @text-color;
-      border-bottom: 1px solid @border-color-split;
-      overflow: hidden;
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
+      // border-top is on the transfer dom. We should minus 1px for this
+      padding: (@transfer-header-vertical-padding - 1px) @control-padding-horizontal
+        @transfer-header-vertical-padding;
+      overflow: hidden;
+      color: @text-color;
+      background: @component-background;
+      border-bottom: @border-width-base @border-style-base @border-color-split;
+      border-radius: @border-radius-base @border-radius-base 0 0;
 
       &-title {
         position: absolute;
-        right: 15px;
+        right: 12px;
+      }
+
+      .@{ant-prefix}-checkbox-wrapper + span {
+        padding-left: 8px;
       }
     }
 
     &-body {
-      font-size: @font-size-base;
       position: relative;
       height: 100%;
+      font-size: @font-size-base;
 
       &-search-wrapper {
         position: absolute;
         top: 0;
         left: 0;
-        padding: 4px;
         width: 100%;
+        padding: 12px;
       }
     }
 
     &-body-with-search {
-      padding-top: 34px;
+      padding-top: @input-height-base + 24px;
     }
 
     &-content {
       height: 100%;
+      margin: 0;
+      padding: 0;
       overflow: auto;
+      list-style: none;
+      > .LazyLoad {
+        animation: transferHighlightIn 1s;
+      }
+
       &-item {
+        min-height: 32px;
+        padding: 6px @control-padding-horizontal;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        padding: 7px 15px;
-        min-height: 32px;
-        transition: all 0.3s ease;
+        transition: all 0.3s;
+        > span {
+          padding-right: 0;
+        }
+        &-text {
+          padding-left: 8px;
+        }
       }
 
       &-item:not(&-item-disabled):hover {
+        background-color: @item-hover-bg;
         cursor: pointer;
-        background-color: tint(@primary-color, 90%);
       }
 
       &-item-disabled {
-        cursor: not-allowed;
         color: @btn-disable-color;
-      }
-
-      &-item-highlight-enter {
-        animation: transferHighlightIn 1s ease;
-        transition: none;
+        cursor: not-allowed;
       }
     }
 
     &-body-not-found {
-      padding-top: 0;
-      color: #ccc;
-      text-align: center;
-      display: none;
       position: absolute;
       top: 50%;
       width: 100%;
-      margin-top: -10px;
-    }
+      padding-top: 0;
+      color: @disabled-color;
+      text-align: center;
+      transform: translateY(-50%);
 
-    &-content:empty + &-body-not-found {
-      display: block;
+      // with filter should offset the search box height
+      .@{transfer-prefix-cls}-list-body-with-search & {
+        margin-top: @input-height-base / 2;
+      }
     }
 
     &-footer {
-      border-top: 1px solid @border-color-split;
-      border-radius: 0 0 @border-radius-base @border-radius-base;
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
+      border-top: @border-width-base @border-style-base @border-color-split;
+      border-radius: 0 0 @border-radius-base @border-radius-base;
     }
   }
 
   &-operation {
     display: inline-block;
-    overflow: hidden;
     margin: 0 8px;
+    overflow: hidden;
     vertical-align: middle;
 
     .@{ant-prefix}-btn {
@@ -152,7 +175,7 @@
       }
 
       .@{iconfont-css-prefix} {
-        .iconfont-size-under-12px(10px);
+        font-size: 12px;
       }
     }
   }
@@ -160,7 +183,7 @@
 
 @keyframes transferHighlightIn {
   0% {
-    background: tint(@primary-color, 80%);
+    background: @primary-2;
   }
   100% {
     background: transparent;

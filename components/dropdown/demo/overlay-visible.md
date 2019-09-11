@@ -1,5 +1,5 @@
 ---
-order: 6
+order: 7
 title:
   zh-CN: 菜单隐藏方式
   en-US: The way of hiding menu.
@@ -13,23 +13,24 @@ title:
 
 The default is to close the menu when you click on menu items, this feature can be turned off.
 
-````jsx
+```jsx
 import { Menu, Dropdown, Icon } from 'antd';
 
-const OverlayVisible = React.createClass({
-  getInitialState() {
-    return {
-      visible: false,
-    };
-  },
-  handleMenuClick(e) {
+class OverlayVisible extends React.Component {
+  state = {
+    visible: false,
+  };
+
+  handleMenuClick = e => {
     if (e.key === '3') {
       this.setState({ visible: false });
     }
-  },
-  handleVisibleChange(flag) {
+  };
+
+  handleVisibleChange = flag => {
     this.setState({ visible: flag });
-  },
+  };
+
   render() {
     const menu = (
       <Menu onClick={this.handleMenuClick}>
@@ -39,7 +40,8 @@ const OverlayVisible = React.createClass({
       </Menu>
     );
     return (
-      <Dropdown overlay={menu}
+      <Dropdown
+        overlay={menu}
         onVisibleChange={this.handleVisibleChange}
         visible={this.state.visible}
       >
@@ -48,8 +50,8 @@ const OverlayVisible = React.createClass({
         </a>
       </Dropdown>
     );
-  },
-});
+  }
+}
 
 ReactDOM.render(<OverlayVisible />, mountNode);
-````
+```

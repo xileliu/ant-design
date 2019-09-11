@@ -1,62 +1,105 @@
-import React from 'react';
-import Checkbox from './index';
-import PureRenderMixin from 'rc-util/lib/PureRenderMixin';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import { polyfill } from 'react-lifecycles-compat';
+import classNames from 'classnames';
+import shallowEqual from 'shallowequal';
+import omit from 'omit.js';
+import Checkbox, { CheckboxChangeEvent } from './Checkbox';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
+
+export type CheckboxValueType = string | number | boolean;
 
 export interface CheckboxOptionType {
-  label: string;
-  value: string;
+  label: React.ReactNode;
+  value: CheckboxValueType;
   disabled?: boolean;
+  onChange?: (e: CheckboxChangeEvent) => void;
 }
 
-export interface CheckboxGroupProps {
-  /** 默认选中的选项 */
-  defaultValue?: Array<string>;
-  /** 指定选中的选项 */
-  value?: Array<string>;
-  /** 指定可选项 */
-  options?: Array<CheckboxOptionType> | Array<string>;
-  /** 变化时回调函数 */
-  onChange?: (checkedValue: Array<string>) => void;
+export interface AbstractCheckboxGroupProps {
+  prefixCls?: string;
+  className?: string;
+  options?: Array<CheckboxOptionType | string>;
   disabled?: boolean;
   style?: React.CSSProperties;
-  prefixCls?: string;
+}
+
+export interface CheckboxGroupProps extends AbstractCheckboxGroupProps {
+  name?: string;
+  defaultValue?: Array<CheckboxValueType>;
+  value?: Array<CheckboxValueType>;
+  onChange?: (checkedValue: Array<CheckboxValueType>) => void;
 }
 
 export interface CheckboxGroupState {
-  value: any;
+  value: CheckboxValueType[];
+  registeredValues: CheckboxValueType[];
 }
 
-export default class CheckboxGroup extends React.Component<CheckboxGroupProps, CheckboxGroupState> {
+export interface CheckboxGroupContext {
+  checkboxGroup: {
+    toggleOption: (option: CheckboxOptionType) => void;
+    value: any;
+    disabled: boolean;
+  };
+}
+
+class CheckboxGroup extends React.Component<CheckboxGroupProps, CheckboxGroupState> {
   static defaultProps = {
     options: [],
-    prefixCls: 'ant-checkbox-group',
   };
+
   static propTypes = {
-    defaultValue: React.PropTypes.array,
-    value: React.PropTypes.array,
-    options: React.PropTypes.array.isRequired,
-    onChange: React.PropTypes.func,
+    defaultValue: PropTypes.array,
+    value: PropTypes.array,
+    options: PropTypes.array.isRequired,
+    onChange: PropTypes.func,
   };
-  constructor(props) {
+
+  static childContextTypes = {
+    checkboxGroup: PropTypes.any,
+  };
+
+  static getDerivedStateFromProps(nextProps: CheckboxGroupProps) {
+    if ('value' in nextProps) {
+      return {
+        value: nextProps.value || [],
+      };
+    }
+    return null;
+  }
+
+  constructor(props: CheckboxGroupProps) {
     super(props);
     this.state = {
       value: props.value || props.defaultValue || [],
-     };
+      registeredValues: [],
+    };
   }
-  componentWillReceiveProps(nextProps) {
-    if ('value' in nextProps) {
-      this.setState({
-        value: nextProps.value || [],
-      });
-    }
+
+  getChildContext() {
+    return {
+      checkboxGroup: {
+        toggleOption: this.toggleOption,
+        value: this.state.value,
+        disabled: this.props.disabled,
+        name: this.props.name,
+
+        // https://github.com/ant-design/ant-design/issues/16376
+        registerValue: this.registerValue,
+        cancelValue: this.cancelValue,
+      },
+    };
   }
-  shouldComponentUpdate(...args) {
-    return PureRenderMixin.shouldComponentUpdate.apply(this, args);
+
+  shouldComponentUpdate(nextProps: CheckboxGroupProps, nextState: CheckboxGroupState) {
+    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState);
   }
+
   getOptions() {
     const { options } = this.props;
     // https://github.com/Microsoft/TypeScript/issues/7960
-    return (options as Array<any>).map(option => {
+    return (options as Array<CheckboxOptionType>).map(option => {
       if (typeof option === 'string') {
         return {
           label: option,
@@ -66,10 +109,24 @@ export default class CheckboxGroup extends React.Component<CheckboxGroupProps, C
       return option;
     });
   }
-  toggleOption = (option) => {
+
+  cancelValue = (value: string) => {
+    this.setState(({ registeredValues }) => ({
+      registeredValues: registeredValues.filter(val => val !== value),
+    }));
+  };
+
+  registerValue = (value: string) => {
+    this.setState(({ registeredValues }) => ({
+      registeredValues: [...registeredValues, value],
+    }));
+  };
+
+  toggleOption = (option: CheckboxOptionType) => {
+    const { registeredValues } = this.state;
     const optionIndex = this.state.value.indexOf(option.value);
     const value = [...this.state.value];
-    if (optionIndex === - 1) {
+    if (optionIndex === -1) {
       value.push(option.value);
     } else {
       value.splice(optionIndex, 1);
@@ -77,29 +134,59 @@ export default class CheckboxGroup extends React.Component<CheckboxGroupProps, C
     if (!('value' in this.props)) {
       this.setState({ value });
     }
-    const onChange = this.props.onChange;
+    const { onChange } = this.props;
     if (onChange) {
-      onChange(value);
+      const options = this.getOptions();
+      onChange(
+        value
+          .filter(val => registeredValues.indexOf(val) !== -1)
+          .sort((a, b) => {
+            const indexA = options.findIndex(opt => opt.value === a);
+            const indexB = options.findIndex(opt => opt.value === b);
+            return indexA - indexB;
+          }),
+      );
     }
-  }
-  render() {
-    const { prefixCls } = this.props;
-    const options = this.getOptions().map(option =>
-      <Checkbox
-        disabled={'disabled' in option ? option.disabled : this.props.disabled}
-        checked={this.state.value.indexOf(option.value) !== -1}
-        onChange={() => this.toggleOption(option)}
-        className={`${prefixCls}-item`}
-        key={option.value}
-      >
-        {option.label}
-      </Checkbox>
-    );
+  };
 
+  renderGroup = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { props, state } = this;
+    const { prefixCls: customizePrefixCls, className, style, options, ...restProps } = props;
+    const prefixCls = getPrefixCls('checkbox', customizePrefixCls);
+    const groupPrefixCls = `${prefixCls}-group`;
+
+    const domProps = omit(restProps, ['children', 'defaultValue', 'value', 'onChange', 'disabled']);
+
+    let { children } = props;
+    if (options && options.length > 0) {
+      children = this.getOptions().map(option => (
+        <Checkbox
+          prefixCls={prefixCls}
+          key={option.value.toString()}
+          disabled={'disabled' in option ? option.disabled : props.disabled}
+          value={option.value}
+          checked={state.value.indexOf(option.value) !== -1}
+          onChange={option.onChange}
+          className={`${groupPrefixCls}-item`}
+        >
+          {option.label}
+        </Checkbox>
+      ));
+    }
+
+    const classString = classNames(groupPrefixCls, className);
     return (
-      <div className={prefixCls}>
-        {options}
+      <div className={classString} style={style} {...domProps}>
+        {children}
       </div>
     );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderGroup}</ConfigConsumer>;
   }
 }
+
+polyfill(CheckboxGroup);
+
+export default CheckboxGroup;

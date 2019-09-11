@@ -15,43 +15,47 @@ title:
 
 ## en-US
 
-This example shows how to fetch and present data from remote server, and how to implement filtering and sorting in server side by sending related parameters to server.
+This example shows how to fetch and present data from a remote server, and how to implement filtering and sorting in server side by sending related parameters to server.
 
 **Note, this example use [Mock API](https://randomuser.me) that you can look up in Network Console.**
 
-````jsx
+```jsx
 import { Table } from 'antd';
 import reqwest from 'reqwest';
 
-const columns = [{
-  title: 'Name',
-  dataIndex: 'name',
-  sorter: true,
-  render: name => `${name.first} ${name.last}`,
-  width: '20%',
-}, {
-  title: 'Gender',
-  dataIndex: 'gender',
-  filters: [
-    { text: 'Male', value: 'male' },
-    { text: 'Female', value: 'female' },
-  ],
-  width: '20%',
-}, {
-  title: 'Email',
-  dataIndex: 'email',
-}];
-
-const Test = React.createClass({
-  getInitialState() {
-    return {
-      data: [],
-      pagination: {},
-      loading: false,
-    };
+const columns = [
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    sorter: true,
+    render: name => `${name.first} ${name.last}`,
+    width: '20%',
   },
-  handleTableChange(pagination, filters, sorter) {
-    const pager = this.state.pagination;
+  {
+    title: 'Gender',
+    dataIndex: 'gender',
+    filters: [{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }],
+    width: '20%',
+  },
+  {
+    title: 'Email',
+    dataIndex: 'email',
+  },
+];
+
+class App extends React.Component {
+  state = {
+    data: [],
+    pagination: {},
+    loading: false,
+  };
+
+  componentDidMount() {
+    this.fetch();
+  }
+
+  handleTableChange = (pagination, filters, sorter) => {
+    const pager = { ...this.state.pagination };
     pager.current = pagination.current;
     this.setState({
       pagination: pager,
@@ -63,8 +67,9 @@ const Test = React.createClass({
       sortOrder: sorter.order,
       ...filters,
     });
-  },
-  fetch(params = {}) {
+  };
+
+  fetch = (params = {}) => {
     console.log('params:', params);
     this.setState({ loading: true });
     reqwest({
@@ -75,8 +80,8 @@ const Test = React.createClass({
         ...params,
       },
       type: 'json',
-    }).then((data) => {
-      const pagination = this.state.pagination;
+    }).then(data => {
+      const pagination = { ...this.state.pagination };
       // Read total count from server
       // pagination.total = data.totalCount;
       pagination.total = 200;
@@ -86,22 +91,21 @@ const Test = React.createClass({
         pagination,
       });
     });
-  },
-  componentDidMount() {
-    this.fetch();
-  },
+  };
+
   render() {
     return (
-      <Table columns={columns}
-        rowKey={record => record.registered}
+      <Table
+        columns={columns}
+        rowKey={record => record.login.uuid}
         dataSource={this.state.data}
         pagination={this.state.pagination}
         loading={this.state.loading}
         onChange={this.handleTableChange}
       />
     );
-  },
-});
+  }
+}
 
-ReactDOM.render(<Test />, mountNode);
-````
+ReactDOM.render(<App />, mountNode);
+```

@@ -1,32 +1,86 @@
+@import './colors';
+
+@padding-space: 40px;
+
 footer {
-  clear: both;
-  border-top: 1px solid #eee;
-  font-size: 12px;
-  background: #fff;
   position: relative;
-  z-index: 1;
-  color: #666;
-  box-shadow: 0 1000px 0 1000px #fff;
-}
-
-footer ul {
-  overflow: hidden;
-  margin: 0 2%;
-  list-style: none;
-}
-
-footer ul li {
-  float: left;
-  width: 25%;
-  padding: 24px 2%;
-}
-
-footer ul li > h2 {
+  z-index: 9;
+  clear: both;
+  margin-left: -1px;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
-  margin: 0 auto 8px;
-  font-weight: 500;
-}
+  background-color: #000;
 
-footer ul li > div {
-  margin: 0 8px 5px 0;
+  .footer-wrap {
+    position: relative;
+    padding: 60px @padding-space;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+
+    .footer-center {
+      display: inline-block;
+      text-align: left;
+
+      > h2 {
+        position: relative;
+        margin: 0 auto 24px;
+        font-weight: 500;
+        font-size: 16px;
+
+        > .title-icon {
+          width: 27px;
+          margin-right: 16px;
+        }
+        > .anticon {
+          position: absolute;
+          top: 3px;
+          left: -22px;
+          color: #aaa;
+          font-size: 16px;
+        }
+      }
+      > div {
+        margin: 12px 0;
+
+        > span {
+          -moz-osx-font-smoothing: grayscale;
+          -webkit-font-smoothing: antialiased;
+        }
+      }
+    }
+  }
+
+  .bottom-bar {
+    margin: 0;
+    padding: 16px @padding-space;
+    overflow: hidden;
+    font-size: 16px;
+    font-family: Avenir, @font-family, sans-serif;
+    line-height: 32px;
+    text-align: center;
+
+    a {
+      margin-left: 4px;
+      color: rgba(255, 255, 255, 0.65);
+      &:hover {
+        color: #fff;
+      }
+    }
+    .translate-button {
+      text-align: left;
+    }
+    .heart {
+      color: #f73f51;
+      font-size: 22px;
+    }
+  }
+  a {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  h2 {
+    color: rgba(255, 255, 255, 1);
+    & > span {
+      color: rgba(255, 255, 255, 1);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 ---
-order: 0
+order: 1
 title:
   zh-CN: 独立使用
   en-US: Standalone
@@ -15,12 +15,24 @@ title:
 
 Used in standalone when children is empty.
 
-````jsx
+```jsx
 import { Badge } from 'antd';
 
-ReactDOM.render(<div>
-  <Badge count={25} />
-  <Badge count={4} style={{ backgroundColor: '#fff', color: '#999', borderColor: '#d9d9d9' }} />
-  <Badge count={109} style={{ backgroundColor: '#87d068' }} />
-</div>, mountNode);
-````
+ReactDOM.render(
+  <div>
+    <Badge count={25} />
+    <Badge
+      count={4}
+      style={{ backgroundColor: '#fff', color: '#999', boxShadow: '0 0 0 1px #d9d9d9 inset' }}
+    />
+    <Badge count={109} style={{ backgroundColor: '#52c41a' }} />
+  </div>,
+  mountNode,
+);
+```
+
+<style>
+.ant-badge-not-a-wrapper:not(.ant-badge-status) {
+  margin-right: 8px;
+}
+</style>

@@ -1,78 +1,85 @@
-@import "../../style/themes/default";
-@import "../../style/mixins/index";
+@import '../../style/themes/index';
+@import '../../style/mixins/index';
 
-@rate-prefix-cls: ~"@{ant-prefix}-rate";
-@rate-star-color: #f5a623;
+@rate-prefix-cls: ~'@{ant-prefix}-rate';
 
 .@{rate-prefix-cls} {
+  .reset-component;
+
+  display: inline-block;
   margin: 0;
   padding: 0;
-  list-style: none;
+  color: @rate-star-color;
   font-size: 20px;
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'anticon';
-  font-weight: normal;
-  font-style: normal;
+  line-height: unset;
+  list-style: none;
+  outline: none;
 
   &-disabled &-star {
-    &:before,
-    &-content:before {
-      cursor: default;
-    }
+    cursor: default;
     &:hover {
       transform: scale(1);
     }
   }
 
   &-star {
+    position: relative;
+    display: inline-block;
     margin: 0;
     padding: 0;
-    display: inline-block;
-    margin-right: 8px;
-    position: relative;
-    transition: all 0.3s ease;
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.3s;
 
-    &:hover {
-      transform: scale(1.1);
+    &:not(:last-child) {
+      margin-right: 8px;
     }
 
-    &:before,
-    &-content:before {
-      color: #e9e9e9;
-      cursor: pointer;
-      content: "\e660";
-      transition: all 0.3s ease;
-      display: block;
-    }
+    > div {
+      &:focus {
+        outline: 0;
+      }
 
-    &-content {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      overflow: hidden;
-      &:before {
-        color: transparent;
+      &:hover,
+      &:focus {
+        transform: scale(1.1);
       }
     }
 
-    &-half &-content:before,
-    &-full:before {
-      color: @rate-star-color;
+    &-first,
+    &-second {
+      color: @rate-star-bg;
+      transition: all 0.3s;
+      user-select: none;
+      .@{iconfont-css-prefix} {
+        vertical-align: middle;
+      }
     }
 
-    &-half:hover &-content:before,
-    &-full:hover:before {
-      color: tint(@rate-star-color, 20%);
+    &-first {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      opacity: 0;
+    }
+
+    &-half &-first,
+    &-half &-second {
+      opacity: 1;
+    }
+
+    &-half &-first,
+    &-full &-second {
+      color: inherit;
     }
   }
 
   &-text {
-    margin-left: 8px;
-    vertical-align: middle;
     display: inline-block;
+    margin-left: 8px;
     font-size: @font-size-base;
   }
 }

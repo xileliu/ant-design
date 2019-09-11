@@ -1,31 +1,40 @@
-import React from 'react';
+import * as React from 'react';
 import classNames from 'classnames';
-import splitObject from '../_util/splitObject';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 
 export interface CheckableTagProps {
   prefixCls?: string;
   className?: string;
+  style?: React.CSSProperties;
   checked: boolean;
-  onChange?: (checked: Boolean) => void;
+  onChange?: (checked: boolean) => void;
 }
 
-export default class CheckableTag extends React.Component<CheckableTagProps, any> {
+export default class CheckableTag extends React.Component<CheckableTagProps> {
   handleClick = () => {
     const { checked, onChange } = this.props;
     if (onChange) {
       onChange(!checked);
     }
-  }
-  render() {
-    const [{ prefixCls = 'ant-tag', className = '', checked }, restProps ] = splitObject(
-        this.props, ['prefixCls', 'className', 'checked']
-      );
-    const cls = classNames(prefixCls, {
-      [`${prefixCls}-checkable`]: true,
-      [`${prefixCls}-checkable-checked`]: checked,
-    }, className);
+  };
 
-    delete restProps.onChange;
-    return <div {...restProps} className={cls} onClick={this.handleClick} />;
+  renderCheckableTag = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { prefixCls: customizePrefixCls, className, checked, ...restProps } = this.props;
+    const prefixCls = getPrefixCls('tag', customizePrefixCls);
+    const cls = classNames(
+      prefixCls,
+      {
+        [`${prefixCls}-checkable`]: true,
+        [`${prefixCls}-checkable-checked`]: checked,
+      },
+      className,
+    );
+
+    delete (restProps as any).onChange; // TypeScript cannot check delete now.
+    return <span {...(restProps as any)} className={cls} onClick={this.handleClick} />;
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderCheckableTag}</ConfigConsumer>;
   }
 }

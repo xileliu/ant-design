@@ -4,7 +4,7 @@ type: Data Entry
 title: Checkbox
 ---
 
-Checkbox.
+Checkbox component.
 
 ## When To Use
 
@@ -13,19 +13,35 @@ Checkbox.
 
 ## API
 
-### Checkbox
+### Props
 
-| Property      | Description             | Type      | Default  |
-|----------|------------------|----------|--------|
-| checked | Specifies whether the checkbox is selected. | Boolean | false |
-| defaultChecked | Specifies the initial state: whether or not the checkbox is selected. | Boolean | false |
-| onChange | The callback function that is triggered when the state changes. | Function(e:Event) | - |
+#### Checkbox
 
-### Checkbox Group
+| Property | Description | Type | Default | Version |
+| --- | --- | --- | --- | --- |
+| autoFocus | get focus when component mounted | boolean | false | 3.6.2 |
+| checked | Specifies whether the checkbox is selected. | boolean | false | 3.6.2 |
+| defaultChecked | Specifies the initial state: whether or not the checkbox is selected. | boolean | false | 3.6.2 |
+| disabled | Disable checkbox | boolean | false | 3.6.2 |
+| indeterminate | indeterminate checked state of checkbox | boolean | false | 3.6.2 |
+| onChange | The callback function that is triggered when the state changes. | Function(e:Event) | - | 3.6.2 |
 
-| Property      | Description             | Type      | Default  |
-|----------|------------------|----------|--------|
-| defaultValue | Default selected value | Array | [] |
-| value | Used for setting the currently selected value. | Array | [] |
-| options  | Specifies options | Array | [] |
-| onChange | The callback function that is triggered when the state changes. | Function(checkedValue) | - |
+#### Checkbox Group
+
+| Property | Description | Type | Default | Version |
+| --- | --- | --- | --- | --- |
+| defaultValue | Default selected value | string\[] | \[] | 3.6.2 |
+| disabled | Disable all checkboxes | boolean | false | 3.6.2 |
+| name | The `name` property of all `input[type="checkbox"]` children | string | - | 3.16.0 |
+| options | Specifies options | string\[] | \[] | 3.6.2 |
+| value | Used for setting the currently selected value. | string\[] | \[] | 3.6.2 |
+| onChange | The callback function that is triggered when the state changes. | Function(checkedValue) | - | 3.6.2 |
+
+### Methods
+
+#### Checkbox
+
+| Name    | Description  | Version |
+| ------- | ------------ | ------- |
+| blur()  | remove focus | 3.6.2   |
+| focus() | get focus    | 3.6.2   |

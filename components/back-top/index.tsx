@@ -1,42 +1,24 @@
-import React from 'react';
+import * as React from 'react';
 import Animate from 'rc-animate';
 import addEventListener from 'rc-util/lib/Dom/addEventListener';
 import classNames from 'classnames';
 import omit from 'omit.js';
-import Icon from '../icon';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 import getScroll from '../_util/getScroll';
-import getRequestAnimationFrame from '../_util/getRequestAnimationFrame';
-
-const reqAnimFrame = getRequestAnimationFrame();
-
-const currentScrollTop = () => {
-  return window.pageYOffset || document.body.scrollTop || document.documentElement.scrollTop;
-};
-
-const easeInOutCubic = (t, b, c, d) => {
-  const cc = c - b;
-  t /= d / 2;
-  if (t < 1) {
-    return cc / 2 * t * t * t + b;
-  } else {
-    return cc / 2 * ((t -= 2) * t * t + 2) + b;
-  }
-};
-
-function noop() {}
+import scrollTo from '../_util/scrollTo';
 
 function getDefaultTarget() {
-  return typeof window !== 'undefined' ?
-    window : null;
+  return window;
 }
 
 export interface BackTopProps {
   visibilityHeight?: number;
-  onClick?: React.MouseEventHandler<any>;
+  onClick?: React.MouseEventHandler<HTMLElement>;
   target?: () => HTMLElement | Window;
   prefixCls?: string;
   className?: string;
   style?: React.CSSProperties;
+  visible?: boolean; // Only for test. Don't use it.
 }
 
 export default class BackTop extends React.Component<BackTopProps, any> {
@@ -46,49 +28,17 @@ export default class BackTop extends React.Component<BackTopProps, any> {
 
   scrollEvent: any;
 
-  constructor(props) {
+  constructor(props: BackTopProps) {
     super(props);
     this.state = {
       visible: false,
     };
   }
 
-  scrollToTop = (e) => {
-    const scrollTop = currentScrollTop();
-    const startTime = Date.now();
-    const frameFunc = () => {
-      const timestamp = Date.now();
-      const time = timestamp - startTime;
-      this.setScrollTop(easeInOutCubic(time, scrollTop, 0, 450));
-      if (time < 450) {
-        reqAnimFrame(frameFunc);
-      }
-    };
-    reqAnimFrame(frameFunc);
-    (this.props.onClick || noop)(e);
-  }
-
-  setScrollTop(value) {
-    const targetNode = (this.props.target || getDefaultTarget)();
-    if (targetNode === window) {
-      document.body.scrollTop = value;
-      document.documentElement.scrollTop = value;
-    } else {
-      (targetNode as HTMLElement).scrollTop = value;
-    }
-  }
-
-  handleScroll = () => {
-    const { visibilityHeight, target = getDefaultTarget } = this.props;
-    const scrollTop = getScroll(target(), true);
-    this.setState({
-      visible: scrollTop > visibilityHeight,
-    });
-  }
-
   componentDidMount() {
+    const getTarget = this.props.target || getDefaultTarget;
+    this.scrollEvent = addEventListener(getTarget(), 'scroll', this.handleScroll);
     this.handleScroll();
-    this.scrollEvent = addEventListener((this.props.target || getDefaultTarget)(), 'scroll', this.handleScroll);
   }
 
   componentWillUnmount() {
@@ -97,13 +47,32 @@ export default class BackTop extends React.Component<BackTopProps, any> {
     }
   }
 
-  render() {
-    const { prefixCls = 'ant-back-top', className = '', children } = this.props;
+  scrollToTop = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { target = getDefaultTarget, onClick } = this.props;
+    scrollTo(0, {
+      getContainer: target,
+    });
+    if (typeof onClick === 'function') {
+      onClick(e);
+    }
+  };
+
+  handleScroll = () => {
+    const { visibilityHeight, target = getDefaultTarget } = this.props;
+    const scrollTop = getScroll(target(), true);
+    this.setState({
+      visible: scrollTop > (visibilityHeight as number),
+    });
+  };
+
+  renderBackTop = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { prefixCls: customizePrefixCls, className = '', children } = this.props;
+    const prefixCls = getPrefixCls('back-top', customizePrefixCls);
     const classString = classNames(prefixCls, className);
 
     const defaultElement = (
       <div className={`${prefixCls}-content`}>
-        <Icon className={`${prefixCls}-icon`} type="to-top" />
+        <div className={`${prefixCls}-icon`} />
       </div>
     );
 
@@ -113,9 +82,13 @@ export default class BackTop extends React.Component<BackTopProps, any> {
       'className',
       'children',
       'visibilityHeight',
+      'target',
+      'visible',
     ]);
 
-    const backTopBtn = this.state.visible ? (
+    const visible = 'visible' in this.props ? this.props.visible : this.state.visible;
+
+    const backTopBtn = visible ? (
       <div {...divProps} className={classString} onClick={this.scrollToTop}>
         {children || defaultElement}
       </div>
@@ -126,5 +99,9 @@ export default class BackTop extends React.Component<BackTopProps, any> {
         {backTopBtn}
       </Animate>
     );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderBackTop}</ConfigConsumer>;
   }
 }

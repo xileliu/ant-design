@@ -1,17 +1,27 @@
-@import "../../style/themes/default";
-@import "../../style/mixins/index";
+@import '../../style/themes/index';
+@import '../../style/mixins/index';
 
-@dropdown-prefix-cls: ~"@{ant-prefix}-dropdown";
+@dropdown-prefix-cls: ~'@{ant-prefix}-dropdown';
 
 .@{dropdown-prefix-cls} {
+  .reset-component;
+
   position: absolute;
-  left: -9999px;
   top: -9999px;
+  left: -9999px;
   z-index: @zindex-dropdown;
   display: block;
-  font-size: @font-size-base;
-  font-weight: normal;
-  line-height: 1.5;
+
+  &::before {
+    position: absolute;
+    top: -7px;
+    right: 0;
+    bottom: -7px;
+    left: -7px;
+    z-index: -9999;
+    opacity: 0.0001;
+    content: ' ';
+  }
 
   &-wrap {
     position: relative;
@@ -20,13 +30,13 @@
       .iconfont-size-under-12px(10px);
     }
 
-    .@{iconfont-css-prefix}-down:before {
-      transition: transform 0.2s ease;
+    .@{iconfont-css-prefix}-down::before {
+      transition: transform 0.2s;
     }
   }
 
   &-wrap-open {
-    .@{iconfont-css-prefix}-down:before {
+    .@{iconfont-css-prefix}-down::before {
       transform: rotate(180deg);
     }
   }
@@ -37,79 +47,100 @@
   }
 
   &-menu {
-    outline: none;
     position: relative;
-    list-style-type: none;
-    padding: 0;
     margin: 0;
+    padding: 4px 0;
     text-align: left;
+    list-style-type: none;
     background-color: @component-background;
-    border-radius: @border-radius-base;
-    box-shadow: @box-shadow-base;
     background-clip: padding-box;
+    border-radius: @border-radius-base;
+    outline: none;
+    box-shadow: @box-shadow-base;
+    -webkit-transform: translate3d(0, 0, 0);
+
+    &-item-group-title {
+      padding: 5px @control-padding-horizontal;
+      color: @text-color-secondary;
+      transition: all 0.3s;
+    }
+
+    &-submenu-popup {
+      position: absolute;
+      z-index: @zindex-dropdown;
+
+      > .@{dropdown-prefix-cls}-menu {
+        transform-origin: 0 0;
+      }
+    }
 
     &-item,
     &-submenu-title {
-      padding: 7px 16px;
-      margin: 0;
       clear: both;
-      font-size: @font-size-base;
-      font-weight: normal;
+      margin: 0;
+      padding: @dropdown-vertical-padding @control-padding-horizontal;
       color: @text-color;
+      font-weight: normal;
+      font-size: @dropdown-font-size;
+      line-height: @dropdown-line-height;
       white-space: nowrap;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s;
+
+      > .anticon:first-child {
+        min-width: 12px;
+        margin-right: 8px;
+      }
 
       > a {
-        color: @text-color;
         display: block;
-        padding: 7px 16px;
-        margin: -7px -16px;
+        margin: -5px -@control-padding-horizontal;
+        padding: 5px @control-padding-horizontal;
+        color: @text-color;
+        transition: all 0.3s;
+      }
+
+      &-selected,
+      &-selected > a {
+        color: @dropdown-selected-color;
+        background-color: @item-active-bg;
       }
 
       &:hover {
-        background-color: tint(@primary-color, 90%);
+        background-color: @item-hover-bg;
       }
 
       &-disabled {
-        color: #ccc;
+        color: @disabled-color;
         cursor: not-allowed;
-        pointer-events: none;
 
         &:hover {
-          color: #ccc;
+          color: @disabled-color;
           background-color: @component-background;
           cursor: not-allowed;
         }
       }
 
-      &:first-child {
-        border-radius: @border-radius-base @border-radius-base 0 0;
-      }
-
-      &:last-child {
-        border-radius: 0 0 @border-radius-base @border-radius-base;
-      }
-
-      &:only-child {
-        border-radius: @border-radius-base;
-      }
-
       &-divider {
         height: 1px;
+        margin: 4px 0;
         overflow: hidden;
-        background-color: @border-color-split;
         line-height: 0;
+        background-color: @border-color-split;
+      }
+      .@{dropdown-prefix-cls}-menu-submenu-arrow {
+        position: absolute;
+        right: @padding-xs;
+        &-icon {
+          color: @text-color-secondary;
+          font-style: normal;
+          .iconfont-size-under-12px(10px);
+        }
       }
     }
 
-    &-submenu-title:after {
-      font-family: "anticon" !important;
-      position: absolute;
-      content: "\e61f";
-      right: 16px;
-      color: @text-color-secondary;
-      .iconfont-size-under-12px(10px);
+    &-submenu-title {
+      padding-right: 26px;
     }
 
     &-submenu-vertical {
@@ -117,55 +148,98 @@
     }
 
     &-submenu-vertical > & {
+      position: absolute;
       top: 0;
       left: 100%;
-      position: absolute;
       min-width: 100%;
       margin-left: 4px;
       transform-origin: 0 0;
     }
 
-    &-submenu:first-child &-submenu-title {
-      border-radius: @border-radius-base @border-radius-base 0 0;
-    }
-
-    &-submenu:last-child &-submenu-title {
-      border-radius: 0 0 @border-radius-base @border-radius-base;
+    &-submenu&-submenu-disabled .@{dropdown-prefix-cls}-menu-submenu-title {
+      &,
+      .@{dropdown-prefix-cls}-menu-submenu-arrow-icon {
+        color: @disabled-color;
+        background-color: @component-background;
+        cursor: not-allowed;
+      }
     }
   }
 
-  &.slide-up-enter.slide-up-enter-active&-placement-bottomLeft,
-  &.slide-up-appear.slide-up-appear-active&-placement-bottomLeft {
+  &.slide-down-enter.slide-down-enter-active&-placement-bottomLeft,
+  &.slide-down-appear.slide-down-appear-active&-placement-bottomLeft,
+  &.slide-down-enter.slide-down-enter-active&-placement-bottomCenter,
+  &.slide-down-appear.slide-down-appear-active&-placement-bottomCenter,
+  &.slide-down-enter.slide-down-enter-active&-placement-bottomRight,
+  &.slide-down-appear.slide-down-appear-active&-placement-bottomRight {
     animation-name: antSlideUpIn;
   }
 
   &.slide-up-enter.slide-up-enter-active&-placement-topLeft,
-  &.slide-up-appear.slide-up-appear-active&-placement-topLeft {
+  &.slide-up-appear.slide-up-appear-active&-placement-topLeft,
+  &.slide-up-enter.slide-up-enter-active&-placement-topCenter,
+  &.slide-up-appear.slide-up-appear-active&-placement-topCenter,
+  &.slide-up-enter.slide-up-enter-active&-placement-topRight,
+  &.slide-up-appear.slide-up-appear-active&-placement-topRight {
     animation-name: antSlideDownIn;
   }
 
-  &.slide-up-leave.slide-up-leave-active&-placement-bottomLeft {
+  &.slide-down-leave.slide-down-leave-active&-placement-bottomLeft,
+  &.slide-down-leave.slide-down-leave-active&-placement-bottomCenter,
+  &.slide-down-leave.slide-down-leave-active&-placement-bottomRight {
     animation-name: antSlideUpOut;
   }
 
-  &.slide-up-leave.slide-up-leave-active&-placement-topLeft {
+  &.slide-up-leave.slide-up-leave-active&-placement-topLeft,
+  &.slide-up-leave.slide-up-leave-active&-placement-topCenter,
+  &.slide-up-leave.slide-up-leave-active&-placement-topRight {
     animation-name: antSlideDownOut;
   }
 }
 
 .@{dropdown-prefix-cls}-trigger,
 .@{dropdown-prefix-cls}-link {
-  font-size: @font-size-base;
-  .@{iconfont-css-prefix}-down {
+  > .@{iconfont-css-prefix}.@{iconfont-css-prefix}-down {
     .iconfont-size-under-12px(10px);
   }
 }
 
 .@{dropdown-prefix-cls}-button {
+  white-space: nowrap;
+
   &.@{ant-prefix}-btn-group > .@{ant-prefix}-btn:last-child:not(:first-child) {
-    padding-right: 7px;
+    padding-right: @padding-xs;
+    padding-left: @padding-xs;
   }
-  .@{iconfont-css-prefix}-down {
+  .@{iconfont-css-prefix}.@{iconfont-css-prefix}-down {
     .iconfont-size-under-12px(10px);
+  }
+}
+
+// https://github.com/ant-design/ant-design/issues/4903
+.@{dropdown-prefix-cls}-menu-dark {
+  &,
+  .@{dropdown-prefix-cls}-menu {
+    background: @menu-dark-bg;
+  }
+  .@{dropdown-prefix-cls}-menu-item,
+  .@{dropdown-prefix-cls}-menu-submenu-title,
+  .@{dropdown-prefix-cls}-menu-item > a {
+    color: @text-color-secondary-dark;
+    .@{dropdown-prefix-cls}-menu-submenu-arrow::after {
+      color: @text-color-secondary-dark;
+    }
+    &:hover {
+      color: @text-color-inverse;
+      background: transparent;
+    }
+  }
+  .@{dropdown-prefix-cls}-menu-item-selected {
+    &,
+    &:hover,
+    > a {
+      color: @text-color-inverse;
+      background: @primary-color;
+    }
   }
 }

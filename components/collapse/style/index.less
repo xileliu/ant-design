@@ -1,69 +1,93 @@
-@import "../../style/themes/default";
-@import "../../style/mixins/index";
+@import '../../style/themes/index';
+@import '../../style/mixins/index';
 
-@collapse-prefix-cls: ~"@{ant-prefix}-collapse";
-
-.collapse-close() {
-  .iconfont-size-under-12px(7px, 270deg);
-}
-.collapse-open() {
-  .iconfont-size-under-12px(7px, 360deg);
-}
+@collapse-prefix-cls: ~'@{ant-prefix}-collapse';
 
 .@{collapse-prefix-cls} {
-  background-color: @background-color-base;
-  border-radius: 3px;
-  border: 1px solid @border-color-base;
+  .reset-component;
+
+  background-color: @collapse-header-bg;
+  border: @border-width-base @border-style-base @border-color-base;
+  border-bottom: 0;
+  border-radius: @collapse-panel-border-radius;
 
   & > &-item {
-    border-top: 1px solid @border-color-base;
-    &:first-child {
-      border-top: 0;
+    border-bottom: @border-width-base @border-style-base @border-color-base;
+
+    &:last-child {
+      &,
+      & > .@{collapse-prefix-cls}-header {
+        border-radius: 0 0 @collapse-panel-border-radius @collapse-panel-border-radius;
+      }
     }
 
     > .@{collapse-prefix-cls}-header {
-      height: 38px;
-      line-height: 38px;
-      padding-left: 32px;
-      color: @text-color;
-      cursor: pointer;
       position: relative;
+      padding: @collapse-header-padding;
+      padding-left: @collapse-header-padding-extra;
+      color: @heading-color;
+      line-height: 22px;
+      cursor: pointer;
+      transition: all 0.3s;
 
-      .arrow {
-        .collapse-close();
+      .@{collapse-prefix-cls}-arrow {
         .iconfont-mixin();
+
         position: absolute;
-        color: @text-color;
+        top: 50%;
+        left: @padding-md;
         display: inline-block;
-        margin-right: 8px;
-        line-height: 40px;
-        content: "\e606";
-        vertical-align: middle;
-        transition: transform 0.24s ease;
-        top: 0;
-        left: 16px;
-        top: ~"16px \9";
-        left: ~"0 \9";
-        &:before {
-          content: "\e606";
+        font-size: @font-size-sm;
+        transform: translateY(-50%);
+
+        & svg {
+          transition: transform 0.24s;
+        }
+      }
+
+      .@{collapse-prefix-cls}-extra {
+        float: right;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    &.@{collapse-prefix-cls}-no-arrow {
+      > .@{collapse-prefix-cls}-header {
+        padding-left: 12px;
+      }
+    }
+  }
+
+  // Expand Icon right
+  &-icon-position-right {
+    & > .@{collapse-prefix-cls}-item {
+      > .@{collapse-prefix-cls}-header {
+        padding: @collapse-header-padding;
+        padding-right: @collapse-header-padding-extra;
+
+        .@{collapse-prefix-cls}-arrow {
+          right: @padding-md;
+          left: initial;
         }
       }
     }
   }
 
   &-anim-active {
-    transition: height .2s @ease-out;
+    transition: height 0.2s @ease-out;
   }
 
   &-content {
     overflow: hidden;
     color: @text-color;
-    padding: 0 16px;
-    background-color: @component-background;
+    background-color: @collapse-content-bg;
+    border-top: @border-width-base @border-style-base @border-color-base;
 
     & > &-box {
-      padding-top: 16px;
-      padding-bottom: 16px;
+      padding: @collapse-content-padding;
     }
 
     &-inactive {
@@ -73,13 +97,7 @@
 
   &-item:last-child {
     > .@{collapse-prefix-cls}-content {
-      border-radius: 0 0 3px 3px;
-    }
-  }
-
-  & > &-item > &-header[aria-expanded="true"] {
-    .arrow {
-      .collapse-open();
+      border-radius: 0 0 @collapse-panel-border-radius @collapse-panel-border-radius;
     }
   }
 
@@ -89,15 +107,28 @@
   }
 
   &-borderless > &-item {
-    border: 0;
+    border-bottom: 1px solid @border-color-base;
   }
 
-  &-borderless > &-item > &-header {
-    border-bottom: 1px solid @border-color-base;
-    transition: all .3s;
-    border-radius: @border-color-base @border-color-base 0 0;
-    &:hover {
-      background-color: #fcfcfc;
+  &-borderless > &-item:last-child,
+  &-borderless > &-item:last-child &-header {
+    border-radius: 0;
+  }
+
+  &-borderless > &-item > &-content {
+    background-color: transparent;
+    border-top: 0;
+  }
+
+  &-borderless > &-item > &-content > &-content-box {
+    padding-top: 4px;
+  }
+
+  & &-item-disabled > &-header {
+    &,
+    & > .arrow {
+      color: @disabled-color;
+      cursor: not-allowed;
     }
   }
 }

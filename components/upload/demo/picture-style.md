@@ -1,5 +1,5 @@
 ---
-order: 6
+order: 8
 title:
   zh-CN: 图片列表样式
   en-US: Pictures with list style
@@ -11,53 +11,71 @@ title:
 
 ## en-US
 
-If uploade file is picture, a thumbnail can be shown. `IE8/9` do not support local thumbnail show. Please use `thumbUrl` instead.
+If uploaded file is a picture, the thumbnail can be shown. `IE8/9` do not support local thumbnail show. Please use `thumbUrl` instead.
 
-
-````jsx
+```jsx
 import { Upload, Button, Icon } from 'antd';
 
-const props = {
-  action: '/upload.do',
-  listType: 'picture',
-  defaultFileList: [{
-    uid: -1,
+const fileList = [
+  {
+    uid: '-1',
     name: 'xxx.png',
     status: 'done',
     url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
     thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-  }, {
-    uid: -2,
+  },
+  {
+    uid: '-2',
     name: 'yyy.png',
     status: 'done',
     url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
     thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-  }],
+  },
+];
+
+const props = {
+  action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+  listType: 'picture',
+  defaultFileList: [...fileList],
+};
+
+const props2 = {
+  action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+  listType: 'picture',
+  defaultFileList: [...fileList],
+  className: 'upload-list-inline',
 };
 
 ReactDOM.render(
   <div>
     <Upload {...props}>
-      <Button type="ghost">
-        <Icon type="upload" /> upload
+      <Button>
+        <Icon type="upload" /> Upload
       </Button>
     </Upload>
     <br />
     <br />
-    <Upload {...props} className="upload-list-inline">
-      <Button type="ghost">
-        <Icon type="upload" /> upload
+    <Upload {...props2}>
+      <Button>
+        <Icon type="upload" /> Upload
       </Button>
     </Upload>
-  </div>
-, mountNode);
-````
+  </div>,
+  mountNode,
+);
+```
 
-````css
+```css
 /* tile uploaded pictures */
 .upload-list-inline .ant-upload-list-item {
-  display: inline-block;
+  float: left;
   width: 200px;
   margin-right: 8px;
 }
-````
+.upload-list-inline .ant-upload-animate-enter {
+  animation-name: uploadAnimateInlineIn;
+}
+.upload-list-inline .ant-upload-animate-leave {
+  animation-name: uploadAnimateInlineOut;
+}
+```

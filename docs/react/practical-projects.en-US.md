@@ -1,155 +1,199 @@
 ---
-order: 3
-title: Practical Projects
+order: 2
+title: Real project with umi and dva
 ---
 
-[dva](https://github.com/dvajs/dva) is a React and redux based, lightweight and elm-style framework, which supports side effects, hot module replacement, dynamic on demand, react-native, SSR. And it has been widely used in production environment.
+In real project development, you might need a data flow solution like Redux or MobX. Ant Design React is a UI library that can be used with any data flow solution and application framework within the React ecosystem. We have launched dva based on Redux, as well as a pluggable enterprise application framework umi, which is recommended for use in your projects.
 
-This article will guide you to create a simple application from zero using dva and antd.
+Dva is a lightweight data flow solution based on Redux. The concept comes from elm. It supports side effects, hot module replacement, dynamic loading, react-native, SSR, etc. It has been widely used in production.
 
-Include the following:
+And [umi](http://umijs.org/) is a routing-based framework that supports [next.js-like conventional routing](https://umijs.org/guide/router.html) and various advanced routing functions, such as [routing-level on-demand loading](https://umijs.org/en/plugin/umi-plugin-react.html#dynamicimport). With a complete [plugin system](https://umijs.org/plugin/) that covers every life cycle from source code to build product, umi is able to support various functional extensions and business needs.
 
----
+> You may also be interested in [Ant Design Pro](https://pro.ant.design/), an Out-of-box UI solution for enterprise applications based on umi, dva and ant design.
 
-## Install dva
-
-Install dva with npm.
-
-```bash
-$ npm install dva-cli -g
-```
+This article will guide you to create a simple application from zero using umi, dva and antd.
 
 ## Create New App
 
-After installed dva-cli, you can have access to the `dva` command in terminal. Now, create a new application with `dva new`.
+First create an empty directory,
 
 ```bash
-$ dva new dva-quickstart
+$ mkdir myapp
+$ cd myapp
 ```
 
-This creates `dva-quickstart` directory, that contains the project directories and files, and provides development server, build script, mock service, proxy server and so on.
+It is recommended to use yarn to create an application and execute the following command.
 
-Then `cd` the `dva-quickstart` directory, and start the development server.
+> If you are using npm, execute `npm create umi` and the effect will be the same.
 
 ```bash
-$ cd dva-quickstart
-$ npm start
+$ yarn create umi
+
+yarn create v1.12.0
+[1/4] 🔍  Resolving packages...
+[2/4] 🚚  Fetching packages...
+[3/4] 🔗  Linking dependencies...
+[4/4] 📃  Building fresh packages...
+
+success Installed "create-umi@0.9.5" with binaries:
+      - create-umi
 ```
 
-After a few seconds, you will see the following output:
+Yarn will install the latest version of [create-umi](https://github.com/umijs/create-umi) and then create the app with interactive ui.
+
+Select `app` and press Enter to confirm.
+
+```
+? Select the boilerplate type
+  ant-design-pro  - Create project with an layout-only ant-design-pro boilerplate, use together with umi block.
+❯ app             - Create project with a simple boilerplate, support typescript.
+  block           - Create a umi block.
+  library         - Create a library with umi.
+  plugin          - Create a umi plugin.
+```
+
+Select `antd` and `dva` and press Enter to confirm.
 
 ```bash
-          proxy: load rule from proxy.config.js
-          proxy: listened on 8989
-📦  411/411 build modules
-webpack: bundle build is now finished.
+   create package.json
+   create mock/.gitkeep
+   create src/assets/yay.jpg
+   create src/layouts/index.css
+   create src/layouts/index.js
+   create src/pages/index.css
+   create src/pages/index.js
+   create src/global.css
+   create .gitignore
+   create .editorconfig
+   create .env
+   create .umirc.js
+   create .eslintrc
+   create .prettierrc
+   create .prettierignore
+   create src/models/.gitkeep
+   create src/dva.js
+✨  File Generate Done
+✨  Done in 966.73s.
 ```
 
-Open http://localhost:8989 in your browser, you will see dva welcome page.
+Then install dependencies,
+
+```bash
+$ yarn
+```
+
+Then start the app,
+
+```bash
+$ yarn start
+```
+
+After a few seconds, you will see the following output,
+
+```bash
+ DONE  Compiled successfully in 212ms
+
+  App running at:
+  - Local:   http://localhost:8000/
+  - Network: http://{{ YourIP }}:8000/
+```
+
+Open [http://localhost:8000](http://localhost:8000) in your browser, you will see the welcome page of umi.
+
+<img src="https://gw.alipayobjects.com/zos/rmsportal/lewbQdlEHzuNDpaxykUP.png" width="718" />
 
 ## Integrate antd
 
-Install `antd` and `babel-plugin-import` with npm. `babel-plugin-import` is used to automatically import scripts and stylesheets from antd in demand. See [repo](https://github.com/ant-design/babel-plugin-import) 。
+After selecting `antd` earlier, antd's dependencies are automatically handled and loaded on demand. You can check the configuration in `.umirc.js` to make sure antd is turned on.
 
-```bash
-$ npm install antd babel-plugin-import --save
+```js
+// ref: https://umijs.org/config/
+export default {
+  plugins: [
+    // ref: https://umijs.org/plugin/umi-plugin-react.html
+    [
+      'umi-plugin-react',
+      {
+        antd: true,
+        dva: true,
+      },
+    ],
+  ],
+};
 ```
 
-Edit `webpack.config.js` to integrate `babel-plugin-import`.
+> And if you want to use a fixed version of antd, you can install additional antd dependency in your project, and the antd dependencies declared in package.json will be used first.
 
-```diff
-+ webpackConfig.babel.plugins.push(['import', {
-+   libraryName: 'antd',
-+   style: 'css',
-+ }]);
-```
-
-> Notice: No need to manually restart the server, it will restart automatically after you save the `webpack.config.js`.
-
-## Define Router
+## Create Routes
 
 We need to write an application displaying the list of products. The first step is to create a route.
 
-Create a route component `routes/Products.js`:
+If you don't have npx, you need to install it first to execute the commands under node_modules.
 
-```javascript
-import React from 'react';
-
-const Products = (props) => (
-  <h2>List of Products</h2>
-);
-
-export default Products;
+```bash
+$ yarn global add npx
 ```
 
-Add routing information to router, edit `router.js`:
+Then create a `/products` route,
 
-```diff
-+ import Products from './routes/Products';
-...
-+ <Route path="/products" component={Products} />
+```bash
+$ npx umi g page products
+
+   create src/pages/products.js
+   create src/pages/products.css
+✔  success
 ```
 
-Then open http://localhost:8989/#/products in your browser, you should be able to see the `<h2>` tag defined before.
+Then open [http://localhost:8000/products](http://localhost:8000/products) in your browser and you should see the corresponding page.
 
 ## Write UI Components
 
-As your application grows and you notice you are sharing UI elements between multiple pages (or using them multiple times on the same page), in dva it's called reusable components.
+As your application grows and you notice you are sharing UI elements between multiple pages (or using them multiple times on the same page), in umi it's called reusable components.
 
 Let's create a `ProductList` component that we can use in multiple places to show a list of products.
 
-Create `components/ProductList.js` and typing:
+Create `src/components/ProductList.js` by typing:
 
-```javascript
-import React, { PropTypes } from 'react';
+```js
 import { Table, Popconfirm, Button } from 'antd';
 
 const ProductList = ({ onDelete, products }) => {
-  const columns = [{
-    title: 'Name',
-    dataIndex: 'name',
-  }, {
-    title: 'Actions',
-    render: (text, record) => {
-      return (
-        <Popconfirm title="Delete?" onConfirm={() => onDelete(record.id)}>
-          <Button>Delete</Button>
-        </Popconfirm>
-      );
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
     },
-  }];
-  return (
-    <Table
-      dataSource={products}
-      columns={columns}
-    />
-  );
-};
-
-ProductList.proptypes = {
-  onDelete: PropTypes.func.isRequired,
-  products: PropTypes.array.isRequired,
+    {
+      title: 'Actions',
+      render: (text, record) => {
+        return (
+          <Popconfirm title="Delete?" onConfirm={() => onDelete(record.id)}>
+            <Button>Delete</Button>
+          </Popconfirm>
+        );
+      },
+    },
+  ];
+  return <Table dataSource={products} columns={columns} />;
 };
 
 export default ProductList;
 ```
 
-## Define Model
+## Define dva Model
 
-After complete the UI, we will begin processing the data and logic.
+After completing the UI, we will begin processing the data and logic.
 
-dva manages domain model with `model`, with reducers for synchronous state update, effects for async logic, and subscriptions for data source subscribe.
+dva manages the domain model with `model`, with reducers for synchronous state updates, effects for async logic, and subscriptions for data source subscribe.
 
-Let's create a model `models/products.js` and typing:
+Let's create a model `src/models/products.js` by typing,
 
-```javascript
-import dva from 'dva';
-
+```js
 export default {
   namespace: 'products',
   state: [],
   reducers: {
-    'delete'(state, { payload: id }) {
+    delete(state, { payload: id }) {
       return state.filter(item => item.id !== id);
     },
   },
@@ -158,27 +202,21 @@ export default {
 
 In this model:
 
-- `namespace` represent the key on global state
-- `state` is the initial value, here is an empty array
-- `reducers` is equal to reducer in redux, accepting action, and update state synchronously
+- `namespace` represents the key on global state
+- `state` is the initial value, here it is an empty array
+- `reducers` is equivalent to a reducer in redux, accepting an action, and update state simultaneously
 
-Then don't forget to require it in `index.js`:
-
-```diff
-// 3. Model
-+ app.model(require('./models/products'));
-```
+In umi, the model files under `src/models` will be automatically injected, you don't need to inject manually.
 
 ## Connect
 
-So far, we have completed a separate model and component. Then how to connect these together?
+So far, we have completed a separate model and component. How do we connect them together?
 
-dva provides a `connect` method. If you are familiar with redux, this `connect` is from react-router.
+dva provides a `connect` method. If you are familiar with redux, this connect is from react-redux.
 
-Edit `routes/Products.js` and replace with following:
+Edit `src/pages/products.js` and replace it with the following,
 
-```javascript
-import React from 'react';
+```js
 import { connect } from 'dva';
 import ProductList from '../components/ProductList';
 
@@ -197,69 +235,72 @@ const Products = ({ dispatch, products }) => {
   );
 };
 
-// export default Products;
 export default connect(({ products }) => ({
   products,
 }))(Products);
 ```
 
-Finally, we need some initial data to make the application run together. Edit `index.js`:
+Finally, we need some initial data to make the application run together. Edit `src/app.js`,
 
-```diff
-- const app = dva();
-+ const app = dva({
-+   initialState: {
-+     products: [
-+       { name: 'dva', id: 1 },
-+       { name: 'antd', id: 2 },
-+     ],
-+   },
-+ });
+```js
+export const dva = {
+  config: {
+    onError(err) {
+      err.preventDefault();
+      console.error(err.message);
+    },
+    initialState: {
+      products: [{ name: 'dva', id: 1 }, { name: 'antd', id: 2 }],
+    },
+  },
+};
 ```
 
 Refresh your browser, you should see the following result:
 
-<p style="text-align: center">
-  <img src="https://zos.alipayobjects.com/rmsportal/GQJeDDeUCSTRMMg.gif" />
-</p>
+<img src="https://zos.alipayobjects.com/rmsportal/GQJeDDeUCSTRMMg.gif" />
 
 ## Build
 
-Now that we've written our application and verified that it works in development, it's time to get it ready to deploy to our users. To do so, run the following command:
+Now that we've written our application and verified that it works in development, it's time to get it ready for deployment to our users. To do so, run the following command,
 
 ```bash
 $ npm run build
 ```
 
-After a few seconds, the output should be as follows:
+After a few seconds, the output should be as follows,
 
 ```bash
-Child
-    Time: 14008ms
-         Asset       Size  Chunks             Chunk Names
-    index.html  255 bytes          [emitted]
-     common.js    1.18 kB       0  [emitted]  common
-      index.js     504 kB    1, 0  [emitted]  index
-     index.css     127 kB    1, 0  [emitted]  index
+> @ build /private/tmp/sorrycc-V0lLrF
+> umi build
+
+[5:01:58 PM] webpack compiled in 11s 615ms
+
+
+ DONE  Compiled successfully in 11622ms                                           5:01:58 PM
+
+File sizes after gzip:
+
+  340.44 KB  dist/umi.js
+  17.82 KB   dist/umi.css
 ```
 
-The `build` command packages up all of the assets that make up your application —— JavaScript, templates, CSS, web fonts, images, and more. Then you can find these files in the `dist /` directory.
+The `build` command packages up all of the assets that make up your application —— JavaScript, templates, CSS, web fonts, images, and more. Then you can find these files in the `dist/` directory.
 
 ## What's Next
 
 We have completed a simple application, but you may still have lots of questions, such as:
 
-- How to dealing with async logic
-- How to load initial data elegantly
-- How to handle onError globally and locally
-- How to load Routes and Models on demand
-- How to implement HMR
-- How to mock data
-- and so on...
+- How to handle onError globally and locally?
+- How to handle routes?
+- How to mock data?
+- How to deploy?
+- ant so on...
 
 You can:
 
-- Visit [dva official website](https://github.com/dvajs/dva).
-- View all the [API](https://github.com/dvajs/dva#api).
-- View [tutorial](https://github.com/dvajs/dva-docs/blob/master/v1/zh-cn/tutorial/01-%E6%A6%82%E8%A6%81.md), complete a medium application step by step.
-- View examples, such as [dva version of hackernews](https://github.com/dvajs/dva-hackernews).
+- Visit [umi official website](https://umijs.org/) and [dva official website](https://dvajs.com/)
+- Know [the umi routes](https://umijs.org/zh/guide/router.html)
+- Know [how to deploy umi application](https://umijs.org/zh/guide/deploy.html)
+- Checkout [dva knowledge](https://dvajs.com/knowledgemap/), including all the basic knowledge with ES6, React, dva
+- Be familiar with the [8 Concepts of dva](https://dvajs.com/guide/concepts.html), and understand how they are connected together

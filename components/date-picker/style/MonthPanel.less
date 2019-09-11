@@ -1,13 +1,20 @@
 .@{calendar-prefix-cls}-month-panel {
-  left: 0;
-  top: 1px;
-  bottom: 0;
-  right: 0;
-  background: @component-background;
-  z-index: 10;
   position: absolute;
-  outline: none;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: @zindex-picker-panel;
+  background: @component-background;
   border-radius: @border-radius-base;
+  outline: none;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    // TODO: this is a useless wrapper, and we need to remove it in rc-calendar
+    height: 100%;
+  }
 }
 
 .@{calendar-prefix-cls}-month-panel-hidden {
@@ -15,23 +22,35 @@
 }
 
 .@{calendar-prefix-cls}-month-panel-header {
-  .calendarPanelHeader(~"@{calendar-prefix-cls}-month-panel");
+  .calendarPanelHeader(~'@{calendar-prefix-cls}-month-panel');
+  position: relative;
+}
+
+.@{calendar-prefix-cls}-month-panel-body {
+  flex: 1;
+}
+
+.@{calendar-prefix-cls}-month-panel-footer {
+  border-top: @border-width-base @border-style-base @border-color-split;
+  .@{calendar-prefix-cls}-footer-extra {
+    padding: 0 12px;
+  }
 }
 
 .@{calendar-prefix-cls}-month-panel-table {
-  table-layout: fixed;
   width: 100%;
-  height: 248px;
+  height: 100%;
+  table-layout: fixed;
   border-collapse: separate;
 }
 
 .@{calendar-prefix-cls}-month-panel-selected-cell .@{calendar-prefix-cls}-month-panel-month {
+  color: @text-color-inverse;
   background: @primary-color;
-  color: #fff;
 
   &:hover {
+    color: @text-color-inverse;
     background: @primary-color;
-    color: #fff;
   }
 }
 
@@ -41,27 +60,27 @@
   &-disabled .@{calendar-prefix-cls}-month-panel-month {
     &,
     &:hover {
+      color: @disabled-color;
+      background: @disabled-bg;
       cursor: not-allowed;
-      color: #bcbcbc;
-      background: #f3f3f3;
     }
   }
 }
 
 .@{calendar-prefix-cls}-month-panel-month {
   display: inline-block;
-  margin: 0 auto;
-  color: @text-color;
-  background: transparent;
-  text-align: center;
   height: 24px;
+  margin: 0 auto;
+  padding: 0 8px;
+  color: @text-color;
   line-height: 24px;
-  padding: 0 6px;
-  border-radius: 4px;
+  text-align: center;
+  background: transparent;
+  border-radius: @border-radius-sm;
   transition: background 0.3s ease;
 
   &:hover {
-    background: tint(@primary-color, 90%);
+    background: @item-hover-bg;
     cursor: pointer;
   }
 }

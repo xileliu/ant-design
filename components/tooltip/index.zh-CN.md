@@ -1,7 +1,7 @@
 ---
 category: Components
 subtitle: 文字提示
-type: Data Display
+type: 数据展示
 title: Tooltip
 ---
 
@@ -15,11 +15,30 @@ title: Tooltip
 
 ## API
 
-| 参数      | 说明                                     | 类型       | 默认值 |
-|-----------|------------------------------------------|------------|--------|
-| placement | 气泡框位置，可选 `top` `left` `right` `bottom` `topLeft` `topRight` `bottomLeft` `bottomRight` `leftTop` `leftBottom` `rightTop` `rightBottom` | string     | top    |
-| title     | 提示文字                                 | string/React.Element | 无     |
-| getTooltipContainer | 浮层渲染父节点。默认渲染到 body 上 | Function(triggerNode) | () => document.body |
-| arrowPointAtCenter | 箭头是否指向目标元素中心，`antd@1.11+` 支持 | Boolean | `false` |
+| 参数  | 说明     | 类型                               | 默认值 | 版本 |
+| ----- | -------- | ---------------------------------- | ------ | ---- |
+| title | 提示文字 | string\|ReactNode\|() => ReactNode | 无     |      |
 
-更多 API 可参考：https://github.com/react-component/tooltip
+### 共同的 API
+
+以下 API 为 Tooltip、Popconfirm、Popover 共享的 API。
+
+| 参数 | 说明 | 类型 | 默认值 | 版本 |
+| --- | --- | --- | --- | --- |
+| arrowPointAtCenter | 箭头是否指向目标元素中心，`antd@1.11+` 支持 | boolean | `false` |  |
+| autoAdjustOverflow | 气泡被遮挡时自动调整位置 | boolean | `true` |  |
+| defaultVisible | 默认是否显隐 | boolean | false |  |
+| getPopupContainer | 浮层渲染父节点，默认渲染到 body 上 | Function(triggerNode) | () => document.body |  |
+| mouseEnterDelay | 鼠标移入后延时多少才显示 Tooltip，单位：秒 | number | 0.1 |  |
+| mouseLeaveDelay | 鼠标移出后延时多少才隐藏 Tooltip，单位：秒 | number | 0.1 |  |
+| overlayClassName | 卡片类名 | string | 无 |  |
+| overlayStyle | 卡片样式 | object | 无 |  |
+| placement | 气泡框位置，可选 `top` `left` `right` `bottom` `topLeft` `topRight` `bottomLeft` `bottomRight` `leftTop` `leftBottom` `rightTop` `rightBottom` | string | top |  |
+| trigger | 触发行为，可选 `hover/focus/click/contextMenu` | string | hover |  |
+| visible | 用于手动控制浮层显隐 | boolean | false |  |
+| onVisibleChange | 显示隐藏的回调 | (visible) => void | 无 |  |
+| align | 该值将合并到 placement 的配置中，设置参考 [rc-tooltip](https://github.com/react-component/tooltip) | Object | 无 | 3.10.0 |
+
+## 注意
+
+请确保 `Tooltip` 的子元素能接受 `onMouseEnter`、`onMouseLeave`、`onFocus`、`onClick` 事件。

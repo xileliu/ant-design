@@ -13,9 +13,10 @@ title:
 
 A disabled state of the `DatePicker`.
 
-````jsx
+```jsx
 import { DatePicker } from 'antd';
 import moment from 'moment';
+
 const { MonthPicker, RangePicker } = DatePicker;
 
 const dateFormat = 'YYYY-MM-DD';
@@ -29,6 +30,7 @@ ReactDOM.render(
       defaultValue={[moment('2015-06-06', dateFormat), moment('2015-06-06', dateFormat)]}
       disabled
     />
-  </div>
-, mountNode);
-````
+  </div>,
+  mountNode,
+);
+```

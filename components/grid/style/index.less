@@ -1,20 +1,21 @@
-@import "../../style/themes/default";
-@import "../../style/mixins/index";
-@import "./mixin";
+@import '../../style/themes/index';
+@import '../../style/mixins/index';
+@import './mixin';
 
 // Grid system
 .@{ant-prefix}-row {
   .make-row();
+
   display: block;
+  box-sizing: border-box;
 }
 
 .@{ant-prefix}-row-flex {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
 
-  &:before,
-  &:after {
+  &::before,
+  &::after {
     display: flex;
   }
 }
@@ -61,7 +62,8 @@
 
 .@{ant-prefix}-col {
   position: relative;
-  display: block;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
 }
 
 .make-grid-columns();
@@ -83,7 +85,6 @@
   .make-grid(-sm);
 }
 
-
 // Medium grid
 //
 // Columns, offsets, pushes, and pulls for the desktop device range.
@@ -92,11 +93,26 @@
   .make-grid(-md);
 }
 
-
 // Large grid
 //
 // Columns, offsets, pushes, and pulls for the large desktop device range.
 
 @media (min-width: @screen-lg-min) {
   .make-grid(-lg);
+}
+
+// Extra Large grid
+//
+// Columns, offsets, pushes, and pulls for the full hd device range.
+
+@media (min-width: @screen-xl-min) {
+  .make-grid(-xl);
+}
+
+// Extra Extra Large grid
+//
+// Columns, offsets, pushes, and pulls for the full hd device range.
+
+@media (min-width: @screen-xxl-min) {
+  .make-grid(-xxl);
 }

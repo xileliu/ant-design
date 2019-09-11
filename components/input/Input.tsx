@@ -1,77 +1,60 @@
-import React from 'react';
-import { Component, PropTypes } from 'react';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
-import calculateNodeHeight from './calculateNodeHeight';
-import assign from 'object-assign';
 import omit from 'omit.js';
+import { polyfill } from 'react-lifecycles-compat';
+import Group from './Group';
+import Search from './Search';
+import TextArea from './TextArea';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
+import Password from './Password';
+import Icon from '../icon';
+import { Omit, tuple } from '../_util/type';
+import warning from '../_util/warning';
 
-function fixControlledValue(value) {
+function fixControlledValue<T>(value: T) {
   if (typeof value === 'undefined' || value === null) {
     return '';
   }
   return value;
 }
 
-function onNextFrame(cb) {
-  if (window.requestAnimationFrame) {
-    return window.requestAnimationFrame(cb);
-  }
-  return window.setTimeout(cb, 1);
+function hasPrefixSuffix(props: InputProps) {
+  return !!('prefix' in props || props.suffix || props.allowClear);
 }
 
-function clearNextFrameAction(nextFrameId) {
-  if (window.cancelAnimationFrame) {
-    window.cancelAnimationFrame(nextFrameId);
-  } else {
-    window.clearTimeout(nextFrameId);
-  }
-}
+const InputSizes = tuple('small', 'default', 'large');
 
-export interface AutoSizeType {
-  minRows?: number;
-  maxRows?: number;
-};
-
-export interface InputProps {
+export interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'> {
   prefixCls?: string;
-  className?: string;
-  type?: string;
-  id?: number | string;
-  value?: any;
-  defaultValue?: any;
-  placeholder?: string;
-  size?: 'large' | 'default' | 'small';
-  disabled?: boolean;
-  readOnly?: boolean;
+  size?: (typeof InputSizes)[number];
+  onPressEnter?: React.KeyboardEventHandler<HTMLInputElement>;
   addonBefore?: React.ReactNode;
   addonAfter?: React.ReactNode;
-  onPressEnter?: React.FormEventHandler<any>;
-  onKeyDown?: React.FormEventHandler<any>;
-  onChange?: React.FormEventHandler<any>;
-  onClick?: React.FormEventHandler<any>;
-  onBlur?: React.FormEventHandler<any>;
-  autosize?: boolean | AutoSizeType;
-  autoComplete?: 'on' | 'off';
-  style?: React.CSSProperties;
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
+  allowClear?: boolean;
 }
 
-export default class Input extends Component<InputProps, any> {
-  static Group: any;
-  static Search: any;
+class Input extends React.Component<InputProps, any> {
+  static Group: typeof Group;
+
+  static Search: typeof Search;
+
+  static TextArea: typeof TextArea;
+
+  static Password: typeof Password;
+
   static defaultProps = {
-    disabled: false,
-    prefixCls: 'ant-input',
     type: 'text',
-    autosize: false,
   };
 
   static propTypes = {
     type: PropTypes.string,
-    id: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number,
-    ]),
-    size: PropTypes.oneOf(['small', 'default', 'large']),
+    id: PropTypes.string,
+    size: PropTypes.oneOf(InputSizes),
+    maxLength: PropTypes.number,
     disabled: PropTypes.bool,
     value: PropTypes.any,
     defaultValue: PropTypes.any,
@@ -79,35 +62,92 @@ export default class Input extends Component<InputProps, any> {
     addonBefore: PropTypes.node,
     addonAfter: PropTypes.node,
     prefixCls: PropTypes.string,
-    autosize: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
     onPressEnter: PropTypes.func,
     onKeyDown: PropTypes.func,
+    onKeyUp: PropTypes.func,
+    onFocus: PropTypes.func,
+    onBlur: PropTypes.func,
+    prefix: PropTypes.node,
+    suffix: PropTypes.node,
+    allowClear: PropTypes.bool,
   };
 
-  nextFrameActionId: number;
-  refs: {
-    input: any;
-  };
-
-  state = {
-    textareaStyles: null,
-  };
-
-  componentDidMount() {
-    this.resizeTextarea();
+  static getDerivedStateFromProps(nextProps: InputProps) {
+    if ('value' in nextProps) {
+      return {
+        value: nextProps.value,
+      };
+    }
+    return null;
   }
 
-  componentWillReceiveProps(nextProps) {
-    // Re-render with the new content then recalculate the height as required.
-    if (this.props.value !== nextProps.value) {
-      if (this.nextFrameActionId) {
-        clearNextFrameAction(this.nextFrameActionId);
+  input: HTMLInputElement;
+
+  constructor(props: InputProps) {
+    super(props);
+    const value = typeof props.value === 'undefined' ? props.defaultValue : props.value;
+    this.state = {
+      value,
+    };
+  }
+
+  // Since polyfill `getSnapshotBeforeUpdate` need work with `componentDidUpdate`.
+  // We keep an empty function here.
+  componentDidUpdate() {}
+
+  getSnapshotBeforeUpdate(prevProps: InputProps) {
+    if (hasPrefixSuffix(prevProps) !== hasPrefixSuffix(this.props)) {
+      warning(
+        this.input !== document.activeElement,
+        'Input',
+        `When Input is focused, dynamic add or remove prefix / suffix will make it lose focus caused by dom structure change. Read more: https://ant.design/components/input/#FAQ`,
+      );
+    }
+    return null;
+  }
+
+  getInputClassName(prefixCls: string) {
+    const { size, disabled } = this.props;
+    return classNames(prefixCls, {
+      [`${prefixCls}-sm`]: size === 'small',
+      [`${prefixCls}-lg`]: size === 'large',
+      [`${prefixCls}-disabled`]: disabled,
+    });
+  }
+
+  setValue(
+    value: string,
+    e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement, MouseEvent>,
+    callback?: () => void,
+  ) {
+    if (!('value' in this.props)) {
+      this.setState({ value }, callback);
+    }
+    const { onChange } = this.props;
+    if (onChange) {
+      let event = e;
+      if (e.type === 'click') {
+        // click clear icon
+        event = Object.create(e);
+        event.target = this.input;
+        event.currentTarget = this.input;
+        const originalInputValue = this.input.value;
+        // change input value cause e.target.value should be '' when clear input
+        this.input.value = '';
+        onChange(event as React.ChangeEvent<HTMLInputElement>);
+        // reset input value
+        this.input.value = originalInputValue;
+        return;
       }
-      this.nextFrameActionId = onNextFrame(this.resizeTextarea);
+      onChange(event as React.ChangeEvent<HTMLInputElement>);
     }
   }
 
-  handleKeyDown = (e) => {
+  saveInput = (node: HTMLInputElement) => {
+    this.input = node;
+  };
+
+  handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { onPressEnter, onKeyDown } = this.props;
     if (e.keyCode === 13 && onPressEnter) {
       onPressEnter(e);
@@ -115,122 +155,169 @@ export default class Input extends Component<InputProps, any> {
     if (onKeyDown) {
       onKeyDown(e);
     }
-  }
+  };
 
-  handleTextareaChange = (e) => {
-    if (!('value' in this.props)) {
-      this.resizeTextarea();
-    }
-    const onChange = this.props.onChange;
-    if (onChange) {
-      onChange(e);
-    }
-  }
+  handleReset = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    this.setValue('', e, () => {
+      this.focus();
+    });
+  };
 
-  resizeTextarea = () => {
-    const { type, autosize } = this.props;
-    if (type !== 'textarea' || !autosize || !this.refs.input) {
-      return;
-    }
-    const minRows = autosize ? (autosize as AutoSizeType).minRows : null;
-    const maxRows = autosize ? (autosize as AutoSizeType).maxRows : null;
-    const textareaStyles = calculateNodeHeight(this.refs.input, false, minRows, maxRows);
-    this.setState({ textareaStyles });
-  }
+  handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.setValue(e.target.value, e);
+  };
 
   focus() {
-    this.refs.input.focus();
+    this.input.focus();
   }
 
-  renderLabledInput(children) {
-    const props = this.props;
+  blur() {
+    this.input.blur();
+  }
 
+  select() {
+    this.input.select();
+  }
+
+  renderClearIcon(prefixCls: string) {
+    const { allowClear, disabled } = this.props;
+    const { value } = this.state;
+    if (!allowClear || disabled || value === undefined || value === null || value === '') {
+      return null;
+    }
+    return (
+      <Icon
+        type="close-circle"
+        theme="filled"
+        onClick={this.handleReset}
+        className={`${prefixCls}-clear-icon`}
+        role="button"
+      />
+    );
+  }
+
+  renderSuffix(prefixCls: string) {
+    const { suffix, allowClear } = this.props;
+    if (suffix || allowClear) {
+      return (
+        <span className={`${prefixCls}-suffix`}>
+          {this.renderClearIcon(prefixCls)}
+          {suffix}
+        </span>
+      );
+    }
+    return null;
+  }
+
+  renderLabeledInput(prefixCls: string, children: React.ReactElement<any>) {
+    const { addonBefore, addonAfter, style, size, className } = this.props;
     // Not wrap when there is not addons
-    if (props.type === 'textarea' || (!props.addonBefore && !props.addonAfter)) {
+    if (!addonBefore && !addonAfter) {
       return children;
     }
 
-    const wrapperClassName = `${props.prefixCls}-group`;
+    const wrapperClassName = `${prefixCls}-group`;
     const addonClassName = `${wrapperClassName}-addon`;
-    const addonBefore = props.addonBefore ? (
-      <span className={addonClassName}>
-        {props.addonBefore}
-      </span>
+    const addonBeforeNode = addonBefore ? (
+      <span className={addonClassName}>{addonBefore}</span>
     ) : null;
+    const addonAfterNode = addonAfter ? <span className={addonClassName}>{addonAfter}</span> : null;
 
-    const addonAfter = props.addonAfter ? (
-      <span className={addonClassName}>
-        {props.addonAfter}
-      </span>
-    ) : null;
-
-    const className = classNames({
-      [`${props.prefixCls}-wrapper`]: true,
-      [wrapperClassName]: (addonBefore || addonAfter),
+    const mergedWrapperClassName = classNames(`${prefixCls}-wrapper`, {
+      [wrapperClassName]: addonBefore || addonAfter,
     });
 
+    const mergedGroupClassName = classNames(className, `${prefixCls}-group-wrapper`, {
+      [`${prefixCls}-group-wrapper-sm`]: size === 'small',
+      [`${prefixCls}-group-wrapper-lg`]: size === 'large',
+    });
+
+    // Need another wrapper for changing display:table to display:inline-block
+    // and put style prop in wrapper
     return (
-      <span className={className}>
-        {addonBefore}
-        {children}
-        {addonAfter}
+      <span className={mergedGroupClassName} style={style}>
+        <span className={mergedWrapperClassName}>
+          {addonBeforeNode}
+          {React.cloneElement(children, { style: null })}
+          {addonAfterNode}
+        </span>
       </span>
     );
   }
 
-  renderInput() {
-    const props = assign({}, this.props);
+  renderLabeledIcon(prefixCls: string, children: React.ReactElement<any>) {
+    const { props } = this;
+    const suffix = this.renderSuffix(prefixCls);
+
+    if (!hasPrefixSuffix(props)) {
+      return children;
+    }
+
+    const prefix = props.prefix ? (
+      <span className={`${prefixCls}-prefix`}>{props.prefix}</span>
+    ) : null;
+
+    const affixWrapperCls = classNames(props.className, `${prefixCls}-affix-wrapper`, {
+      [`${prefixCls}-affix-wrapper-sm`]: props.size === 'small',
+      [`${prefixCls}-affix-wrapper-lg`]: props.size === 'large',
+      [`${prefixCls}-affix-wrapper-with-clear-btn`]:
+        props.suffix && props.allowClear && this.state.value,
+    });
+    return (
+      <span className={affixWrapperCls} style={props.style}>
+        {prefix}
+        {React.cloneElement(children, {
+          style: null,
+          className: this.getInputClassName(prefixCls),
+        })}
+        {suffix}
+      </span>
+    );
+  }
+
+  renderInput(prefixCls: string) {
+    const { className, addonBefore, addonAfter } = this.props;
+    const { value } = this.state;
     // Fix https://fb.me/react-unknown-prop
     const otherProps = omit(this.props, [
       'prefixCls',
       'onPressEnter',
-      'autosize',
       'addonBefore',
       'addonAfter',
-    ]);
-
-    const prefixCls = props.prefixCls;
-    if (!props.type) {
-      return props.children;
-    }
-
-    const inputClassName = classNames(prefixCls, {
-      [`${prefixCls}-sm`]: props.size === 'small',
-      [`${prefixCls}-lg`]: props.size === 'large',
-    }, props.className);
-
-    if ('value' in props) {
-      otherProps.value = fixControlledValue(props.value);
+      'prefix',
+      'suffix',
+      'allowClear',
       // Input elements must be either controlled or uncontrolled,
       // specify either the value prop, or the defaultValue prop, but not both.
-      delete otherProps.defaultValue;
-    }
+      'defaultValue',
+    ]);
 
-    switch (props.type) {
-      case 'textarea':
-        return (
-          <textarea
-            {...otherProps}
-            style={assign({}, props.style, this.state.textareaStyles)}
-            className={inputClassName}
-            onKeyDown={this.handleKeyDown}
-            onChange={this.handleTextareaChange}
-            ref="input"
-          />
-        );
-      default:
-        return (
-          <input
-            {...otherProps}
-            className={inputClassName}
-            onKeyDown={this.handleKeyDown}
-            ref="input"
-          />
-        );
-    }
+    return this.renderLabeledIcon(
+      prefixCls,
+      <input
+        {...otherProps}
+        value={fixControlledValue(value)}
+        onChange={this.handleChange}
+        className={classNames(this.getInputClassName(prefixCls), {
+          [className!]: className && !addonBefore && !addonAfter,
+        })}
+        onKeyDown={this.handleKeyDown}
+        ref={this.saveInput}
+      />,
+    );
   }
+
+  renderComponent = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { prefixCls: customizePrefixCls } = this.props;
+    const prefixCls = getPrefixCls('input', customizePrefixCls);
+    return this.renderLabeledInput(prefixCls, this.renderInput(prefixCls));
+  };
 
   render() {
-    return this.renderLabledInput(this.renderInput());
+    return <ConfigConsumer>{this.renderComponent}</ConfigConsumer>;
   }
 }
+
+polyfill(Input);
+
+export default Input;

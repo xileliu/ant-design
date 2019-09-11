@@ -1,56 +1,93 @@
-import RcRadio from 'rc-radio';
-import React from 'react';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import RcCheckbox from 'rc-checkbox';
 import classNames from 'classnames';
-import PureRenderMixin from 'rc-util/lib/PureRenderMixin';
+import shallowEqual from 'shallowequal';
+import RadioGroup from './group';
+import RadioButton from './radioButton';
+import { RadioProps, RadioChangeEvent, RadioGroupContext } from './interface';
+import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 
-export interface RadioProps {
-  /** 指定当前是否选中*/
-  checked?: boolean;
-  /** 初始是否选中*/
-  defaultChecked?: boolean;
-  /** 根据 value 进行比较，判断是否选中  */
-  value?: string | number;
-  style?: React.CSSProperties;
-  prefixCls?: string;
-  disabled?: boolean;
-  className?: string;
-  onChange?: (e: any) => any;
-  onMouseEnter?: React.FormEventHandler<any>;
-  onMouseLeave?: React.FormEventHandler<any>;
-}
+export default class Radio extends React.Component<RadioProps, {}> {
+  static Group: typeof RadioGroup;
 
-export default class Radio extends React.Component<RadioProps, any> {
-  static Group: any;
-  static Button: any;
+  static Button: typeof RadioButton;
 
   static defaultProps = {
-    prefixCls: 'ant-radio',
+    type: 'radio',
   };
-  shouldComponentUpdate(...args) {
-    return PureRenderMixin.shouldComponentUpdate.apply(this, args);
+
+  static contextTypes = {
+    radioGroup: PropTypes.any,
+  };
+
+  context: any;
+
+  private rcCheckbox: any;
+
+  shouldComponentUpdate(nextProps: RadioProps, nextState: {}, nextContext: RadioGroupContext) {
+    return (
+      !shallowEqual(this.props, nextProps) ||
+      !shallowEqual(this.state, nextState) ||
+      !shallowEqual(this.context.radioGroup, nextContext.radioGroup)
+    );
   }
-  render() {
-    const { prefixCls, children, checked, disabled, className = '', style } = this.props;
-    const wrapperClassString = classNames({
+
+  saveCheckbox = (node: any) => {
+    this.rcCheckbox = node;
+  };
+
+  onChange = (e: RadioChangeEvent) => {
+    if (this.props.onChange) {
+      this.props.onChange(e);
+    }
+
+    if (this.context.radioGroup && this.context.radioGroup.onChange) {
+      this.context.radioGroup.onChange(e);
+    }
+  };
+
+  focus() {
+    this.rcCheckbox.focus();
+  }
+
+  blur() {
+    this.rcCheckbox.blur();
+  }
+
+  renderRadio = ({ getPrefixCls }: ConfigConsumerProps) => {
+    const { props, context } = this;
+    const { prefixCls: customizePrefixCls, className, children, style, ...restProps } = props;
+    const { radioGroup } = context;
+    const prefixCls = getPrefixCls('radio', customizePrefixCls);
+    const radioProps: RadioProps = { ...restProps };
+    if (radioGroup) {
+      radioProps.name = radioGroup.name;
+      radioProps.onChange = this.onChange;
+      radioProps.checked = props.value === radioGroup.value;
+      radioProps.disabled = props.disabled || radioGroup.disabled;
+    }
+    const wrapperClassString = classNames(className, {
       [`${prefixCls}-wrapper`]: true,
-      [`${prefixCls}-wrapper-checked`]: checked,
-      [`${prefixCls}-wrapper-disabled`]: disabled,
-    }, className);
-    const classString = classNames(prefixCls, {
-      [`${prefixCls}-checked`]: checked,
-      [`${prefixCls}-disabled`]: disabled,
+      [`${prefixCls}-wrapper-checked`]: radioProps.checked,
+      [`${prefixCls}-wrapper-disabled`]: radioProps.disabled,
     });
 
     return (
+      // eslint-disable-next-line jsx-a11y/label-has-associated-control
       <label
         className={wrapperClassString}
         style={style}
-        onMouseEnter={this.props.onMouseEnter}
-        onMouseLeave={this.props.onMouseLeave}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}
       >
-        <RcRadio {...this.props} className={classString} style={null} children={null} />
-        {children ? <span>{children}</span> : null}
+        <RcCheckbox {...radioProps} prefixCls={prefixCls} ref={this.saveCheckbox} />
+        {children !== undefined ? <span>{children}</span> : null}
       </label>
     );
+  };
+
+  render() {
+    return <ConfigConsumer>{this.renderRadio}</ConfigConsumer>;
   }
 }
